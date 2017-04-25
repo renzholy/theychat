@@ -1,0 +1,17 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "./",
+    "module": "commonjs",
+    "sourceMap": true,
+    "target": "es6",
+    "strictNullChecks": false,
+    "typeRoots": [
+      "node_modules/@types"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
