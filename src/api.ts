@@ -6,6 +6,7 @@ import {
   User,
   MPSubscribeMsg,
 } from './model'
+import { sleep } from './utils'
 
 const rq = request.defaults({
   pool: false,
@@ -95,28 +96,35 @@ export async function webwxinit(DeviceID: string, Sid: string, Uin: string): Pro
   MPSubscribeMsgList: MPSubscribeMsg,
   ClickReportInterval: number,
 }> {
-  const json = await rq({
-    method: 'POST',
-    url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit',
-    headers: {
-      Accept: 'application/json, text/plain, */*',
-      Origin: 'https://wx.qq.com',
-      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Safari/537.36',
-      'Content-Type': 'application/json;charset=UTF-8',
-      Referer: 'https://wx.qq.com/',
-      'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,ja;q=0.2',
-    },
-    qs: {
-      r: ~Date.now(),
-    },
-    json: {
-      BaseRequest: {
-        DeviceID,
-        Sid,
-        Skey: '',
-        Uin,
-      },
-    },
-  })
-  return json
+  while (true) {
+    try {
+      const json = await rq({
+        method: 'POST',
+        url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit',
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+          Origin: 'https://wx.qq.com',
+          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Safari/537.36',
+          'Content-Type': 'application/json;charset=UTF-8',
+          Referer: 'https://wx.qq.com/',
+          'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,ja;q=0.2',
+        },
+        qs: {
+          r: ~Date.now(),
+        },
+        json: {
+          BaseRequest: {
+            DeviceID,
+            Sid,
+            Skey: '',
+            Uin,
+          },
+        },
+      })
+      return json
+    } catch (err) {
+      console.warn('webwxinit retry')
+      await sleep(3000)
+    }
+  }
 }
