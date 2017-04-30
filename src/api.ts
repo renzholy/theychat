@@ -1,4 +1,11 @@
 import * as request from 'request-promise-native'
+import {
+  BaseResponse,
+  Contact,
+  SyncKey,
+  User,
+  MPSubscribeMsg,
+} from './model'
 
 const rq = request.defaults({
   pool: false,
@@ -72,7 +79,22 @@ export async function webwxnewloginpage(redirect_uri: string): Promise<{
   }
 }
 
-export async function webwxinit(DeviceID: string, Sid: string, Uin: string): Promise<any> {
+export async function webwxinit(DeviceID: string, Sid: string, Uin: string): Promise<{
+  BaseResponse: BaseResponse,
+  Count: number,
+  ContactList: Contact,
+  SyncKey: SyncKey,
+  User: User,
+  ChatSet: string,
+  Skey: string,
+  ClientVersion: number,
+  SystemTime: number,
+  GrayScale: number,
+  InviteStartCount: number,
+  MPSubscribeMsgCount: number,
+  MPSubscribeMsgList: MPSubscribeMsg,
+  ClickReportInterval: number,
+}> {
   const json = await rq({
     method: 'POST',
     url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit',
