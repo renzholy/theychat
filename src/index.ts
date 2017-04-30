@@ -1,6 +1,7 @@
 import 'source-map-support/register'
 import * as qrcode from 'qrcode-terminal'
 import * as https from 'https'
+import { sleep } from './utils'
 import {
   jslogin,
   login,
@@ -24,6 +25,7 @@ async function run() {
   console.log(info2)
   const info3 = await webwxnewloginpage(info2.redirect_uri)
   console.log(info3)
+  await sleep(3000)
   const info4 = await webwxinit(DeviceId, info3.wxsid, info3.wxuin)
   console.log(info4)
 }
