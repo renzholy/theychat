@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./dist/src/index.js",
-    "build": "rm -rf ./dist && tsc && jike-docker-build",
+    "build": "rm -rf ./dist && tsc",
     "dev": "NODE_ENV=dev && tsc -w & nodemon ./dist/src/index.js",
     "test": "NODE_ENV=dev && rm -rf ./dist && tsc && ava -s ./dist/test/*"
   },
@@ -19,19 +19,21 @@
     "url": "https://github.com/RenzHoly/fang-chat/issues"
   },
   "homepage": "https://github.com/RenzHoly/fang-chat#readme",
-  "devDependencies": {
-    "@types/request": "0.0.42",
-    "@types/request-promise": "^4.1.33",
-    "@types/request-promise-native": "^1.0.2",
-    "nodemon": "^1.11.0",
-    "typescript": "^2.2.2"
-  },
   "dependencies": {
     "@types/request-promise-native": "^1.0.2",
+    "blessed": "^0.1.81",
     "qrcode-terminal": "^0.11.0",
     "request": "^2.81.0",
     "request-promise": "^4.2.0",
     "request-promise-native": "^1.0.3",
     "source-map-support": "^0.4.15"
+  },
+  "devDependencies": {
+    "@types/blessed": "^0.1.5",
+    "@types/request": "0.0.42",
+    "@types/request-promise": "^4.1.33",
+    "@types/request-promise-native": "^1.0.2",
+    "nodemon": "^1.11.0",
+    "typescript": "^2.2.2"
   }
 }
