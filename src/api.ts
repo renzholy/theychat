@@ -1,10 +1,16 @@
 import * as request from 'request-promise-native'
 import {
+  BaseRequest,
   BaseResponse,
   Contact,
   SyncKey,
   User,
   MPSubscribeMsg,
+  AddMsg,
+  DelContact,
+  ModChatRoomMember,
+  ModContact,
+  Profile,
 } from './model'
 import { sleep } from './utils'
 
@@ -59,7 +65,7 @@ export async function login(uuid: string): Promise<{
 }
 
 export async function webwxnewloginpage(redirect_uri: string): Promise<{
-  wxuin: string,
+  wxuin: number,
   skey: string,
   wxsid: string,
   pass_ticket: string,
@@ -73,14 +79,14 @@ export async function webwxnewloginpage(redirect_uri: string): Promise<{
     simple: false,
   })
   return {
-    wxuin: html.match(/<wxuin>(.+)<\/wxuin>/)[1],
+    wxuin: parseInt(html.match(/<wxuin>(.+)<\/wxuin>/)[1]),
     skey: html.match(/<skey>(.+)<\/skey>/)[1],
     wxsid: html.match(/<wxsid>(.+)<\/wxsid>/)[1],
     pass_ticket: html.match(/<pass_ticket>(.+)<\/pass_ticket>/)[1],
   }
 }
 
-export async function webwxinit(DeviceID: string, Sid: string, Uin: string): Promise<{
+export async function webwxinit(base_request: BaseRequest): Promise<{
   BaseResponse: BaseResponse,
   Count: number,
   ContactList: Contact[],
@@ -113,18 +119,58 @@ export async function webwxinit(DeviceID: string, Sid: string, Uin: string): Pro
           r: ~Date.now(),
         },
         json: {
-          BaseRequest: {
-            DeviceID,
-            Sid,
-            Skey: '',
-            Uin,
-          },
+          BaseRequest: base_request,
         },
       })
       return json
     } catch (err) {
-      console.warn('webwxinit retry')
-      await sleep(3000)
+      await sleep(5000)
+    }
+  }
+}
+
+export async function webwxsync(base_request: BaseRequest, sync_key: SyncKey): Promise<{
+  BaseResponse: BaseResponse,
+  AddMsgCount: number,
+  AddMsgList: AddMsg[],
+  ModContactCount: number,
+  ModContactList: ModContact[],
+  DelContactCount: number,
+  DelContactList: DelContact[],
+  ModChatRoomMemberCount: number,
+  ModChatRoomMemberList: ModChatRoomMember[],
+  Profile: Profile,
+  ContinueFlag: number,
+  SyncKey: SyncKey,
+  SKey: string,
+  SyncCheckKey: SyncKey,
+}> {
+  while (true) {
+    try {
+      const json = await rq({
+        method: 'POST',
+        url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsync',
+        qs: {
+          sid: base_request.Sid,
+          skey: base_request.Skey,
+        },
+        json: {
+          BaseRequest: base_request,
+          SyncKey: sync_key,
+          rr: ~Date.now(),
+        },
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+          Origin: 'https://wx.qq.com',
+          'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0',
+          'Content-Type': 'application/json;charset=UTF-8',
+          Referer: 'https://wx.qq.com/',
+          'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,ja;q=0.2',
+        },
+      })
+      return json
+    } catch (err) {
+      await sleep(5000)
     }
   }
 }

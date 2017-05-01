@@ -1,46 +1,47 @@
 import 'source-map-support/register'
 import * as https from 'https'
-import { sleep, qrcode as qrcodeStr } from './utils'
-import { init, logo, qrcode, contactList } from './ui'
+import { sleep, qrcode } from './utils'
+import { BaseRequest } from './model'
 import {
   jslogin,
   login,
   webwxinit,
   webwxnewloginpage,
+  webwxsync,
 } from './api'
 
 console.debug = console.log
 
-const DeviceId = "e" + ("" + Math.random().toFixed(15)).substring(2, 17)
-
-const UI = init()
+const DeviceID = "e" + ("" + Math.random().toFixed(15)).substring(2, 17)
 
 async function run() {
-  const info = await jslogin()
-  if (info.code !== 200) {
-    console.error('get qrcode error', info)
+  const info0 = await jslogin()
+  if (info0.code !== 200) {
+    console.error('get qrcode error', info0)
     return
   }
 
-  const l = logo()
-  UI.append(l)
-  UI.render()
-
-  const c = qrcode(await qrcodeStr(`https://login.weixin.qq.com/l/${info.uuid}`, true))
-  UI.append(c)
-  UI.render()
-
-  const info2 = await login(info.uuid)
-
-  l.detach()
-  c.detach()
-  UI.render()
-
+  const info1 = await qrcode(`https://login.weixin.qq.com/l/${info0.uuid}`, true)
+  console.log(info1)
+  const info2 = await login(info0.uuid)
+  console.log(info2)
   const info3 = await webwxnewloginpage(info2.redirect_uri)
-  const info4 = await webwxinit(DeviceId, info3.wxsid, info3.wxuin)
-
-  UI.append(contactList(info4.ContactList.map(contact => contact.NickName)))
-  UI.render()
+  const base_request = <BaseRequest>{
+    DeviceID,
+    Sid: info3.wxsid,
+    Skey: info3.skey,
+    Uin: info3.wxuin,
+  }
+  console.log(info3)
+  const info4 = await webwxinit(base_request)
+  console.log(info4)
+  let info5 = {
+    SyncKey: null
+  }
+  while (true) {
+    info5 = await webwxsync(base_request, info5.SyncKey || info4.SyncKey)
+    console.log(info5)
+  }
 }
 
 run().catch(console.error)

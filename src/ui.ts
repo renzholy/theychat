@@ -1,4 +1,5 @@
 import * as blessed from 'blessed'
+import { Contact } from './model'
 
 export function init(): blessed.Widgets.Screen {
   const screen = blessed.screen({
@@ -44,7 +45,7 @@ export function qrcode(str: string): blessed.Widgets.TextElement {
   })
 }
 
-export function contactList(contacts: string[]): blessed.Widgets.ListElement {
+export function contactList(contacts: Contact[]): blessed.Widgets.ListElement {
   return blessed.list({
     style: {
       selected: {
@@ -54,7 +55,7 @@ export function contactList(contacts: string[]): blessed.Widgets.ListElement {
         fg: 'white',
       },
     },
-    items: contacts,
+    items: contacts.map(contact => contact.NickName.replace(/<[^>]+>(.+)<\/\w+>/g, (match, p1) => p1)),
     mouse: true,
     keys: true,
     vi: true,

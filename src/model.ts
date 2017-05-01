@@ -1,3 +1,10 @@
+export type BaseRequest = {
+  DeviceID: string,
+  Sid: string,
+  Skey: string,
+  Uin: number,
+}
+
 export type BaseResponse = {
   Ret: number,
   ErrMsg?: string,
@@ -88,12 +95,52 @@ export type MPSubscribeMsg = {
   NickName: string,
 }
 
-export type Key = {
+export type SyncKeyItem = {
   Key: number,
   Val: number,
 }
 
 export type SyncKey = {
   Count: number,
-  List: Key[],
+  List: SyncKeyItem[],
+}
+
+export type AddMsg = {
+
+}
+
+export type ModContact = {
+
+}
+
+export type DelContact = {
+
+}
+
+export type ModChatRoomMember = {
+
+}
+
+export type Profile = {
+  BitFlag: number,
+  UserName: {
+    Buff: string,
+  },
+  NickName: {
+    Buff: string,
+  },
+  BindUin: number,
+  BindEmail: {
+    Buff: string,
+  },
+  BindMobile: {
+    Buff: string,
+  },
+  Status: number,
+  Sex: number,
+  PersonalCard: number,
+  Alias: string,
+  HeadImgUpdateFlag: number,
+  HeadImgUrl: string,
+  Signature: string,
 }
