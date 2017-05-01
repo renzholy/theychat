@@ -83,7 +83,7 @@ export async function webwxnewloginpage(redirect_uri: string): Promise<{
 export async function webwxinit(DeviceID: string, Sid: string, Uin: string): Promise<{
   BaseResponse: BaseResponse,
   Count: number,
-  ContactList: Contact,
+  ContactList: Contact[],
   SyncKey: SyncKey,
   User: User,
   ChatSet: string,
@@ -93,7 +93,7 @@ export async function webwxinit(DeviceID: string, Sid: string, Uin: string): Pro
   GrayScale: number,
   InviteStartCount: number,
   MPSubscribeMsgCount: number,
-  MPSubscribeMsgList: MPSubscribeMsg,
+  MPSubscribeMsgList: MPSubscribeMsg[],
   ClickReportInterval: number,
 }> {
   while (true) {
@@ -104,7 +104,7 @@ export async function webwxinit(DeviceID: string, Sid: string, Uin: string): Pro
         headers: {
           Accept: 'application/json, text/plain, */*',
           Origin: 'https://wx.qq.com',
-          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0',
           'Content-Type': 'application/json;charset=UTF-8',
           Referer: 'https://wx.qq.com/',
           'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,ja;q=0.2',

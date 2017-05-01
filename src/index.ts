@@ -1,7 +1,7 @@
 import 'source-map-support/register'
 import * as https from 'https'
-import * as blessed from 'blessed'
-import { sleep, qrcode } from './utils'
+import { sleep, qrcode as qrcodeStr } from './utils'
+import { init, logo, qrcode, contactList } from './ui'
 import {
   jslogin,
   login,
@@ -13,13 +13,7 @@ console.debug = console.log
 
 const DeviceId = "e" + ("" + Math.random().toFixed(15)).substring(2, 17)
 
-const screen = blessed.screen({
-  smartCSR: true,
-})
-screen.render()
-screen.key(['escape', 'q', 'C-c'], function (ch, key) {
-  return process.exit(0);
-})
+const UI = init()
 
 async function run() {
   const info = await jslogin()
@@ -28,43 +22,25 @@ async function run() {
     return
   }
 
-  const welcome1 = blessed.bigtext({
-    left: 0,
-    content: 'We',
-    style: {
-      fg: 'green',
-    },
-  })
-  const welcome2 = blessed.bigtext({
-    left: 0,
-    content: '  Chat',
-    style: {
-      fg: 'white',
-    },
-  })
-  screen.append(welcome2)
-  screen.append(welcome1)
+  const l = logo()
+  UI.append(l)
+  UI.render()
 
-  const code = blessed.text({
-    bottom: 0,
-    left: 0,
-    width: 'shrink',
-    height: 'shrink',
-    content: await qrcode(`https://login.weixin.qq.com/l/${info.uuid}`, true),
-    tags: true,
-    style: {
-      fg: 'white',
-    },
-  })
-  screen.append(code)
-  screen.render()
+  const c = qrcode(await qrcodeStr(`https://login.weixin.qq.com/l/${info.uuid}`, true))
+  UI.append(c)
+  UI.render()
 
   const info2 = await login(info.uuid)
-  console.log(info2)
+
+  l.detach()
+  c.detach()
+  UI.render()
+
   const info3 = await webwxnewloginpage(info2.redirect_uri)
-  console.log(info3)
   const info4 = await webwxinit(DeviceId, info3.wxsid, info3.wxuin)
-  console.log(info4)
+
+  UI.append(contactList(info4.ContactList.map(contact => contact.NickName)))
+  UI.render()
 }
 
 run().catch(console.error)
