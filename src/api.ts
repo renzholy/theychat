@@ -107,14 +107,6 @@ export async function webwxinit(base_request: BaseRequest): Promise<{
       const json = await rq({
         method: 'POST',
         url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit',
-        headers: {
-          Accept: 'application/json, text/plain, */*',
-          Origin: 'https://wx.qq.com',
-          'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0',
-          'Content-Type': 'application/json;charset=UTF-8',
-          Referer: 'https://wx.qq.com/',
-          'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,ja;q=0.2',
-        },
         qs: {
           r: ~Date.now(),
         },
@@ -158,14 +150,6 @@ export async function webwxsync(base_request: BaseRequest, sync_key: SyncKey): P
           BaseRequest: base_request,
           SyncKey: sync_key,
           rr: ~Date.now(),
-        },
-        headers: {
-          Accept: 'application/json, text/plain, */*',
-          Origin: 'https://wx.qq.com',
-          'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0',
-          'Content-Type': 'application/json;charset=UTF-8',
-          Referer: 'https://wx.qq.com/',
-          'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,ja;q=0.2',
         },
       })
       return json
