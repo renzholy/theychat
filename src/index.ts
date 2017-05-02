@@ -35,12 +35,10 @@ async function run() {
   console.log(info3)
   const info4 = await webwxinit(base_request)
   console.log(info4)
-  let info5 = {
-    SyncKey: null
-  }
+  let SyncKey
   while (true) {
-    info5 = await webwxsync(base_request, info5.SyncKey || info4.SyncKey)
-    console.log(info5)
+    const info5 = await webwxsync(base_request, SyncKey || info4.SyncKey)
+    console.log(info5.AddMsgList.map(msg => `${msg.FromUserName}: ${msg.Content}`))
   }
 }
 

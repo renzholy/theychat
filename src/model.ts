@@ -105,8 +105,42 @@ export type SyncKey = {
   List: SyncKeyItem[],
 }
 
-export type AddMsg = {
+export type RecommendInfo = {
 
+}
+
+export type AppInfo = {
+
+}
+
+export type AddMsg = {
+  MsgId: string,
+  FromUserName: string,
+  ToUserName: string,
+  MsgType: number,
+  Content: string,
+  Status: number,
+  ImgStatus: number,
+  CreateTime: number,
+  VoiceLength: number,
+  PlayLength: number,
+  FileName: string,
+  FileSize: string,
+  MediaId: string,
+  Url: string,
+  AppMsgType: number,
+  StatusNotifyCode: number,
+  StatusNotifyUserName: string,
+  RecommendInfo,
+  ForwardFlag: number,
+  AppInfo,
+  HasProductId: number,
+  Ticket: string,
+  ImgHeight: number,
+  ImgWidth: number,
+  SubMsgType: number,
+  NewMsgId: number,
+  OriContent: string
 }
 
 export type ModContact = {
