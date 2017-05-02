@@ -9,8 +9,14 @@ import {
   webwxnewloginpage,
   webwxsync,
 } from './api'
+import * as ui from './ui'
 
 console.debug = console.log
+
+const screen = ui.init()
+const logo = ui.logo()
+screen.append(logo)
+screen.render()
 
 const DeviceID = "e" + ("" + Math.random().toFixed(15)).substring(2, 17)
 
@@ -21,10 +27,16 @@ async function run() {
     return
   }
 
-  const info1 = await qrcode(`https://login.weixin.qq.com/l/${info0.uuid}`, true)
-  console.log(info1)
+  const code = ui.qrcode(await qrcode(`https://login.weixin.qq.com/l/${info0.uuid}`, true))
+  screen.append(code)
+  screen.render()
+
   const info2 = await login(info0.uuid)
-  console.log(info2)
+
+  const loading = ui.loading()
+  screen.append(loading)
+  screen.render()
+
   const info3 = await webwxnewloginpage(info2.redirect_uri)
   const base_request = <BaseRequest>{
     DeviceID,
@@ -32,13 +44,23 @@ async function run() {
     Skey: info3.skey,
     Uin: info3.wxuin,
   }
-  console.log(info3)
+
+  code.detach()
+  logo.detach()
+  loading.detach()
+  screen.render()
+
   const info4 = await webwxinit(base_request)
-  console.log(info4)
+
+  const list = ui.contactList(info4.ContactList)
+  screen.append(list)
+  screen.render()
+
   let SyncKey
   while (true) {
     const info5 = await webwxsync(base_request, SyncKey || info4.SyncKey)
-    console.log(info5.AddMsgList.map(msg => `${msg.FromUserName}: ${msg.Content}`))
+    await sleep(1000)
+    // console.log(info5.AddMsgList.map(msg => `${msg.FromUserName}: ${msg.Content}`))
   }
 }
 
