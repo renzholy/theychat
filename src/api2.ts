@@ -73,7 +73,7 @@ export async function webwxnewloginpage(redirect_uri: string): Promise<{
   const html = await rq({
     url: redirect_uri,
     headers: {
-      Host: 'wx.qq.com',
+      Host: 'wx2.qq.com',
     },
     followRedirect: false,
     simple: false,
@@ -106,7 +106,7 @@ export async function webwxinit(base_request: BaseRequest): Promise<{
     try {
       const json = await rq({
         method: 'POST',
-        url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit',
+        url: 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxinit',
         qs: {
           r: ~Date.now(),
         },
@@ -141,7 +141,7 @@ export async function webwxsync(base_request: BaseRequest, sync_key: SyncKey): P
     try {
       const json = await rq({
         method: 'POST',
-        url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsync',
+        url: 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsync',
         qs: {
           sid: base_request.Sid,
           skey: base_request.Skey,
@@ -159,22 +159,18 @@ export async function webwxsync(base_request: BaseRequest, sync_key: SyncKey): P
   }
 }
 
-export async function webwxgetcontact(skey: string, pass_ticket: string, ): Promise<{
+export async function webwxgetcontact(base_request: BaseRequest): Promise<{
   BaseResponse: BaseResponse,
   MemberCount: number,
   MemberList: Contact[],
   Seq: number,
 }> {
   const json = await rq({
-    method: 'GET',
-    url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact',
-    qs: {
-      r: Date.now(),
-      seq: 0,
-      skey,
-      pass_ticket,
+    method: 'POST',
+    url: 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact',
+    json: {
+      BaseRequest: base_request,
     },
-    json: true,
   })
   return json
 }

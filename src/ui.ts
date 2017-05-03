@@ -1,5 +1,5 @@
 import * as blessed from 'blessed'
-import { Contact } from './model'
+import { Contact, Member } from './model'
 
 export function init(): blessed.Widgets.Screen {
   const screen = blessed.screen({
@@ -68,7 +68,47 @@ export function contactList(contacts: Contact[]): blessed.Widgets.BoxElement {
         fg: 'white',
       },
     },
-    items: contacts.map(contact => contact.NickName.replace(/<\/?[^>]+>/g, '')),
+    items: contacts.map(contact => contact.RemarkName || contact.NickName.replace(/<\/?[^>]+>/g, '')),
+    mouse: true,
+    keys: true,
+    vi: true,
+  })
+  const box = blessed.box({
+    draggable: true,
+    scrollable: true,
+    top: '0',
+    left: '0',
+    width: '120',
+    height: '50%',
+    tags: true,
+    border: {
+      type: 'line'
+    },
+    style: {
+      fg: 'white',
+      border: {
+        fg: '#f0f0f0'
+      },
+      hover: {
+        bg: 'gray'
+      }
+    },
+  })
+  box.append(list)
+  return box
+}
+
+export function memberList(contacts: Contact[]): blessed.Widgets.BoxElement {
+  const list = blessed.list({
+    style: {
+      selected: {
+        fg: 'yellow',
+      },
+      item: {
+        fg: 'white',
+      },
+    },
+    items: contacts.map(contact => contact.RemarkName || contact.NickName.replace(/<\/?[^>]+>/g, '')),
     mouse: true,
     keys: true,
     vi: true,

@@ -5,13 +5,13 @@ import {
   webwxinit,
   webwxsync,
   webwxgetcontact,
-} from '../src/api'
+} from '../src/api2'
 import { qrcode } from '../src/utils'
 import test from 'ava'
 
 const DeviceID = "e" + ("" + Math.random().toFixed(15)).substring(2, 17)
 
-test('api', async t => {
+test('api2', async t => {
   const { uuid, code } = await jslogin()
   t.is(code, 200)
   console.log(await qrcode(`https://login.weixin.qq.com/l/${uuid}`, true))
@@ -35,7 +35,7 @@ test('api', async t => {
   const sync = await webwxsync(base_request, SyncKey)
   t.is(sync.BaseResponse.Ret, 0)
 
-  const contacts = await webwxgetcontact(skey, pass_ticket)
+  const contacts = await webwxgetcontact(base_request)
   console.log(contacts)
   t.is(contacts.BaseResponse.Ret, 0)
 })

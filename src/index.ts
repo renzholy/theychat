@@ -5,9 +5,10 @@ import { BaseRequest } from './model'
 import {
   jslogin,
   login,
-  webwxinit,
   webwxnewloginpage,
+  webwxinit,
   webwxsync,
+  webwxgetcontact,
 } from './api'
 import * as ui from './ui'
 
@@ -51,14 +52,16 @@ async function run() {
   screen.render()
 
   const info4 = await webwxinit(base_request)
+  screen.append(ui.contactList(info4.ContactList))
+  screen.render()
 
-  const list = ui.contactList(info4.ContactList)
-  screen.append(list)
+  const info5 = await webwxgetcontact(info3.skey, info3.pass_ticket)
+  screen.append(ui.memberList(info5.MemberList))
   screen.render()
 
   let SyncKey
   while (true) {
-    const info5 = await webwxsync(base_request, SyncKey || info4.SyncKey)
+    const info6 = await webwxsync(base_request, SyncKey || info4.SyncKey)
     await sleep(1000)
     // console.log(info5.AddMsgList.map(msg => `${msg.FromUserName}: ${msg.Content}`))
   }
