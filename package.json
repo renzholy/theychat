@@ -33,6 +33,7 @@
     "@types/request": "0.0.42",
     "@types/request-promise": "^4.1.33",
     "@types/request-promise-native": "^1.0.2",
+    "ava": "^0.19.1",
     "nodemon": "^1.11.0",
     "typescript": "^2.2.2"
   }
