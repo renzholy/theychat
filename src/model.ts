@@ -178,3 +178,12 @@ export type Profile = {
   HeadImgUrl: string,
   Signature: string,
 }
+
+export type Msg = {
+  ClientMsgId: string,
+  Content: string,
+  FromUserName: string,
+  LocalID: string,
+  ToUserName: string,
+  Type: number,
+}

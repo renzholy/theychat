@@ -5,6 +5,7 @@ import {
   webwxinit,
   webwxsync,
   webwxgetcontact,
+  webwxsendmsg,
 } from '../src/api'
 import { qrcode } from '../src/utils'
 import test from 'ava'
@@ -29,13 +30,15 @@ test('api', async t => {
     Uin: wxuin,
   }
 
-  const { ContactList, BaseResponse: { Ret }, SyncKey } = await webwxinit(base_request)
+  const { ContactList, BaseResponse: { Ret }, SyncKey, User } = await webwxinit(base_request)
   t.is(Ret, 0)
 
   const sync = await webwxsync(base_request, SyncKey)
   t.is(sync.BaseResponse.Ret, 0)
 
   const contacts = await webwxgetcontact(skey, pass_ticket)
-  console.log(contacts)
   t.is(contacts.BaseResponse.Ret, 0)
+
+  const sent = await webwxsendmsg(base_request, User.UserName, 'filehelper', '123')
+  t.is(sent.BaseResponse.Ret, 0)
 })

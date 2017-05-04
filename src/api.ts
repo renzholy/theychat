@@ -159,7 +159,7 @@ export async function webwxsync(base_request: BaseRequest, sync_key: SyncKey): P
   }
 }
 
-export async function webwxgetcontact(skey: string, pass_ticket: string, ): Promise<{
+export async function webwxgetcontact(skey: string, pass_ticket: string): Promise<{
   BaseResponse: BaseResponse,
   MemberCount: number,
   MemberList: Contact[],
@@ -175,6 +175,31 @@ export async function webwxgetcontact(skey: string, pass_ticket: string, ): Prom
       pass_ticket,
     },
     json: true,
+  })
+  return json
+}
+
+export async function webwxsendmsg(base_request: BaseRequest, from: string, to: string, content: string): Promise<{
+  BaseResponse: BaseResponse,
+  MsgId: string,
+  LocalID: string,
+}> {
+  const Id = Date.now() * 1000 + Math.random() * 1000
+  const json = await rq({
+    method: 'POST',
+    url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg',
+    json: {
+      BaseRequest: base_request,
+      Msg: {
+        ClientMsgId: Id,
+        Content: content,
+        FromUserName: from,
+        LocalID: Id,
+        ToUserName: to,
+        Type: 1,
+      },
+      Scene: 0,
+    },
   })
   return json
 }
