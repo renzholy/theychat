@@ -36,7 +36,7 @@ test('api', async t => {
   const sync = await webwxsync(base_request, SyncKey)
   t.is(sync.BaseResponse.Ret, 0)
 
-  const contacts = await webwxgetcontact(skey, pass_ticket)
+  const contacts = await webwxgetcontact(base_request)
   t.is(contacts.BaseResponse.Ret, 0)
 
   const sent = await webwxsendmsg(base_request, User.UserName, 'filehelper', '123')

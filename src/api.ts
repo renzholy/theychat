@@ -20,6 +20,8 @@ const rq = request.defaults({
   gzip: true,
 })
 
+const host = 'wx.qq.com'
+
 export async function jslogin(): Promise<{
   code: number,
   uuid: string,
@@ -73,7 +75,7 @@ export async function webwxnewloginpage(redirect_uri: string): Promise<{
   const html = await rq({
     url: redirect_uri,
     headers: {
-      Host: 'wx.qq.com',
+      Host: host,
     },
     followRedirect: false,
     simple: false,
@@ -106,7 +108,7 @@ export async function webwxinit(base_request: BaseRequest): Promise<{
     try {
       const json = await rq({
         method: 'POST',
-        url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit',
+        url: `https://${host}/cgi-bin/mmwebwx-bin/webwxinit`,
         qs: {
           r: ~Date.now(),
         },
@@ -141,7 +143,7 @@ export async function webwxsync(base_request: BaseRequest, sync_key: SyncKey): P
     try {
       const json = await rq({
         method: 'POST',
-        url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsync',
+        url: `https://${host}/cgi-bin/mmwebwx-bin/webwxsync`,
         qs: {
           sid: base_request.Sid,
           skey: base_request.Skey,
@@ -159,22 +161,18 @@ export async function webwxsync(base_request: BaseRequest, sync_key: SyncKey): P
   }
 }
 
-export async function webwxgetcontact(skey: string, pass_ticket: string): Promise<{
+export async function webwxgetcontact(base_request: BaseRequest): Promise<{
   BaseResponse: BaseResponse,
   MemberCount: number,
   MemberList: Contact[],
   Seq: number,
 }> {
   const json = await rq({
-    method: 'GET',
-    url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact',
-    qs: {
-      r: Date.now(),
-      seq: 0,
-      skey,
-      pass_ticket,
+    method: 'POST',
+    url: `https://${host}/cgi-bin/mmwebwx-bin/webwxgetcontact`,
+    json: {
+      BaseRequest: base_request,
     },
-    json: true,
   })
   return json
 }
@@ -187,7 +185,7 @@ export async function webwxsendmsg(base_request: BaseRequest, from: string, to: 
   const Id = Date.now() * 1000 + Math.random() * 1000
   const json = await rq({
     method: 'POST',
-    url: 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg',
+    url: `https://${host}/cgi-bin/mmwebwx-bin/webwxsendmsg`,
     json: {
       BaseRequest: base_request,
       Msg: {

@@ -55,7 +55,7 @@ async function run() {
   screen.append(ui.contactList(info4.ContactList))
   screen.render()
 
-  const info5 = await webwxgetcontact(info3.skey, info3.pass_ticket)
+  const info5 = await webwxgetcontact(base_request)
   screen.append(ui.memberList(info5.MemberList))
   screen.render()
 
