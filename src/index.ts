@@ -1,7 +1,7 @@
 import 'source-map-support/register'
 import * as https from 'https'
 import { sleep, qrcode } from './utils'
-import { BaseRequest } from './model'
+import { BaseRequest, Contact } from './model'
 import {
   jslogin,
   login,
@@ -9,6 +9,7 @@ import {
   webwxinit,
   webwxsync,
   webwxgetcontact,
+  webwxsendmsg,
 } from './api'
 import * as ui from './ui'
 
@@ -20,6 +21,8 @@ screen.append(logo)
 screen.render()
 
 const DeviceID = "e" + ("" + Math.random().toFixed(15)).substring(2, 17)
+
+let currentContact: Contact
 
 async function run() {
   const info0 = await jslogin()
@@ -52,11 +55,19 @@ async function run() {
   screen.render()
 
   const info4 = await webwxinit(base_request)
-  screen.append(ui.contactList(info4.ContactList))
+  screen.append(ui.contactList(info4.ContactList, (index) => {
+    currentContact = info4.ContactList[index]
+  }))
   screen.render()
 
   const info5 = await webwxgetcontact(base_request)
   screen.append(ui.memberList(info5.MemberList))
+  screen.render()
+
+  screen.append(ui.input(async (value) => {
+    await webwxsendmsg(base_request, info4.User.UserName, currentContact ? currentContact.UserName : 'filehelper', value)
+    screen.render()
+  }))
   screen.render()
 
   let SyncKey

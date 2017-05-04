@@ -6,8 +6,8 @@ export function init(): blessed.Widgets.Screen {
     smartCSR: true,
     fullUnicode: true,
   })
-  screen.key(['escape', 'q', 'C-c'], function (ch, key) {
-    return process.exit(0);
+  screen.key(['C-c'], function (ch, key) {
+    return process.exit(0)
   })
   return screen
 }
@@ -58,7 +58,7 @@ export function qrcode(str: string): blessed.Widgets.TextElement {
   })
 }
 
-export function contactList(contacts: Contact[]): blessed.Widgets.BoxElement {
+export function contactList(contacts: Contact[], onselect: (index: number) => void): blessed.Widgets.BoxElement {
   const list = blessed.list({
     style: {
       selected: {
@@ -94,6 +94,9 @@ export function contactList(contacts: Contact[]): blessed.Widgets.BoxElement {
         bg: 'gray'
       }
     },
+  })
+  list.on('select item', (item, index) => {
+    onselect(index)
   })
   box.append(list)
   return box
@@ -134,4 +137,36 @@ export function memberList(contacts: Contact[]): blessed.Widgets.BoxElement {
   })
   box.append(list)
   return box
+}
+
+export function input(callback: (value: string) => Promise<void>): blessed.Widgets.TextboxElement {
+  const input = blessed.textbox({
+    label: '聊天',
+    draggable: true,
+    focusable: true,
+    inputOnFocus: true,
+    top: '50%',
+    left: 0,
+    width: '240',
+    height: '25%',
+    border: {
+      type: 'line'
+    },
+    style: {
+      fg: 'white',
+      border: {
+        fg: '#f0f0f0'
+      },
+    },
+  })
+  input.on('submit', async (value) => {
+    input.clearValue()
+    input.render()
+    input.focus()
+    await callback(value)
+  })
+  input.key(['escape'], function (ch, key) {
+    input.cancel()
+  })
+  return input
 }
