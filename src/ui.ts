@@ -74,6 +74,7 @@ export function contactList(contacts: Contact[]): blessed.Widgets.BoxElement {
     vi: true,
   })
   const box = blessed.box({
+    label: '微信',
     draggable: true,
     scrollable: true,
     top: '0',
@@ -114,9 +115,10 @@ export function memberList(contacts: Contact[]): blessed.Widgets.BoxElement {
     vi: true,
   })
   const box = blessed.box({
+    label: '通讯录',
     draggable: true,
     top: '0',
-    left: '0',
+    left: '120',
     width: '120',
     height: '50%',
     tags: true,
