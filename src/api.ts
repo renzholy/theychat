@@ -1,5 +1,8 @@
-const request = require('request-promise-native')
-import { set } from 'lodash'
+import {
+  set,
+  map,
+} from 'lodash'
+import * as request from 'request-promise-native'
 import {
   BaseRequest,
   BaseResponse,
@@ -29,19 +32,15 @@ import {
   setUser,
   setContacts,
 } from './store'
-import { Options, FullResponse } from "request-promise-native";
-
-request.debug = true
 
 const defaultRequest = request.defaults({
   pool: false,
-  // jar: true,
   gzip: true,
 })
 
-async function rq(options: Options): Promise<any> {
+async function rq(options: request.Options): Promise<any> {
   const cookies = await getCookies()
-  set(options, 'headers.Cookie', cookies)
+  set(options, 'headers.Cookie', map(cookies, (value, key) => `${key}=${value}`).join(';'))
   return await defaultRequest(options)
 }
 
@@ -89,7 +88,7 @@ export async function login(uuid: string): Promise<string> {
 }
 
 export async function webwxnewloginpage(redirect_uri: string): Promise<void> {
-  const response: FullResponse = await rq({
+  const response: request.FullResponse = await rq({
     url: redirect_uri,
     headers: {
       Host: `wx${ApiVersion}.qq.com`,
@@ -196,7 +195,7 @@ export async function webwxsync(): Promise<{
   SKey: string,
   SyncCheckKey: SyncKey,
 }> {
-  const response: FullResponse = await rq({
+  const response: request.FullResponse = await rq({
     method: 'POST',
     url: `https://wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxsync`,
     qs: {
@@ -211,6 +210,7 @@ export async function webwxsync(): Promise<{
     resolveWithFullResponse: true,
   })
   await setCookies(response.headers['set-cookie'])
+  await setSyncKey(response.body.SyncKey)
   return response.body
 }
 
