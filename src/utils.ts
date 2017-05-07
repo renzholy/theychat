@@ -27,3 +27,7 @@ export function formatText(str: string): string {
     return ''
   })
 }
+
+export function timestamp(): string {
+  return (Date.now() * 1000 + Math.random() * 1000).toString()
+}

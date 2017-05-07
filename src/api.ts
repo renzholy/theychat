@@ -1,4 +1,5 @@
-import * as request from 'request-promise-native'
+const request = require('request-promise-native')
+import { set } from 'lodash'
 import {
   BaseRequest,
   BaseResponse,
@@ -12,23 +13,37 @@ import {
   ModContact,
   Profile,
 } from './model'
-import { sleep } from './utils'
+import {
+  sleep,
+  timestamp,
+} from './utils'
 import {
   getDeviceID,
   getBaseRequest,
   setBaseRequest,
+  getCookies,
+  setCookies,
   getSyncKey,
   setSyncKey,
   getUser,
   setUser,
   setContacts,
 } from './store'
+import { Options, FullResponse } from "request-promise-native";
 
-const rq = request.defaults({
+request.debug = true
+
+const defaultRequest = request.defaults({
   pool: false,
-  jar: request.jar(),
+  // jar: true,
   gzip: true,
 })
+
+async function rq(options: Options): Promise<any> {
+  const cookies = await getCookies()
+  set(options, 'headers.Cookie', cookies)
+  return await defaultRequest(options)
+}
 
 const ApiVersion = ''
 // const ApiVersion = '2'
@@ -74,21 +89,23 @@ export async function login(uuid: string): Promise<string> {
 }
 
 export async function webwxnewloginpage(redirect_uri: string): Promise<void> {
-  const html = await rq({
+  const response: FullResponse = await rq({
     url: redirect_uri,
     headers: {
       Host: `wx${ApiVersion}.qq.com`,
     },
     followRedirect: false,
     simple: false,
+    resolveWithFullResponse: true,
   })
-  const baseRequest = {
+  const html = response.body
+  await setCookies(response.headers['set-cookie'])
+  await setBaseRequest({
     Uin: parseInt(html.match(/<wxuin>(.+)<\/wxuin>/)[1]),
     Skey: html.match(/<skey>(.+)<\/skey>/)[1],
     Sid: html.match(/<wxsid>(.+)<\/wxsid>/)[1],
     DeviceID: await getDeviceID(),
-  }
-  await setBaseRequest(baseRequest)
+  })
 }
 
 export async function webwxinit(): Promise<{
@@ -119,6 +136,24 @@ export async function webwxinit(): Promise<{
   })
   await setSyncKey(json.SyncKey)
   await setUser(json.User)
+  return json
+}
+
+export async function webwxstatusnotify(): Promise<{
+  BaseResponse: BaseResponse,
+  MsgID: string,
+}> {
+  const json = await rq({
+    method: 'POST',
+    url: `https://wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxstatusnotify`,
+    json: {
+      BaseRequest: await getBaseRequest(),
+      Code: 3,
+      FromUserName: (await getUser()).UserName,
+      ToUserName: (await getUser()).UserName,
+      ClientMsgId: timestamp(),
+    },
+  })
   return json
 }
 
@@ -161,7 +196,7 @@ export async function webwxsync(): Promise<{
   SKey: string,
   SyncCheckKey: SyncKey,
 }> {
-  const json = await rq({
+  const response: FullResponse = await rq({
     method: 'POST',
     url: `https://wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxsync`,
     qs: {
@@ -173,8 +208,10 @@ export async function webwxsync(): Promise<{
       SyncKey: await getSyncKey(),
       rr: ~Date.now(),
     },
+    resolveWithFullResponse: true,
   })
-  return json
+  await setCookies(response.headers['set-cookie'])
+  return response.body
 }
 
 export async function webwxgetcontact(): Promise<{
@@ -199,17 +236,17 @@ export async function webwxsendmsg(to: string, content: string): Promise<{
   MsgId: string,
   LocalID: string,
 }> {
-  const Id = Date.now() * 1000 + Math.random() * 1000
+  const ts = timestamp()
   const json = await rq({
     method: 'POST',
     url: `https://wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg`,
     json: {
       BaseRequest: await getBaseRequest(),
       Msg: {
-        ClientMsgId: Id,
+        ClientMsgId: ts,
         Content: content,
         FromUserName: (await getUser()).UserName,
-        LocalID: Id,
+        LocalID: ts,
         ToUserName: to,
         Type: 1,
       },

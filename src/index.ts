@@ -4,10 +4,12 @@ import * as yargs from 'yargs'
 import {
   login,
   contacts,
+  message,
 } from './commands'
 
 yargs
   .command(login)
   .command(contacts)
+  .command(message)
   .help()
   .argv

@@ -50,7 +50,7 @@ test('get contacts', async (t) => {
 })
 
 test('send msg', async (t) => {
-  const response = await webwxsendmsg('filehelper', '123')
+  const response = await webwxsendmsg('filehelper', new Date().toLocaleString())
   console.log(response)
   t.is(response.BaseResponse.Ret, 0)
 })

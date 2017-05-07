@@ -36,6 +36,23 @@ export async function setBaseRequest(baseRequest: BaseRequest): Promise<void> {
   await redis.set('BaseRequest', JSON.stringify(baseRequest))
 }
 
+export async function getCookies(): Promise<{ [key: string]: string }> {
+  return await redis.hgetall('Cookies')
+}
+
+export async function setCookies(cookies: string[]): Promise<void> {
+  if (!cookies) {
+    return
+  }
+  await redis.hmset('Cookies', flatten(cookies.map(cookie => {
+    const str = cookie.split(';')[0]
+    const index = str.indexOf('=')
+    const key = str.substr(0, index)
+    const value = str.substr(index + 1)
+    return [key, value]
+  })))
+}
+
 export async function getSyncKey(): Promise<SyncKey> {
   return JSON.parse(await redis.get('SyncKey'))
 }
