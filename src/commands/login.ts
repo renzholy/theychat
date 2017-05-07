@@ -4,7 +4,7 @@ import {
   webwxnewloginpage,
   webwxinit,
   webwxsync,
-  webwxgetcontact,
+  webwxstatusnotify,
 } from '../api'
 import {
   qrcode,
@@ -24,7 +24,7 @@ export async function handler(argv) {
   await webwxnewloginpage(redirect_uri)
   console.log('init', (await webwxinit()).BaseResponse.Ret)
   console.log('sync', (await webwxsync()).BaseResponse.Ret)
-  console.log('get contact', (await webwxgetcontact()).BaseResponse.Ret)
+  console.log('status notify', (await webwxstatusnotify()).BaseResponse.Ret)
   console.log('login succeed')
   process.exit(0)
 }

@@ -1,6 +1,7 @@
 import {
   set,
   map,
+  mapKeys,
 } from 'lodash'
 import * as request from 'request-promise-native'
 import {
@@ -30,7 +31,6 @@ import {
   setSyncKey,
   getUser,
   setUser,
-  setContacts,
 } from './store'
 
 const defaultRequest = request.defaults({
@@ -82,7 +82,7 @@ export async function login(uuid: string): Promise<string> {
     })
     code = parseInt(html.match(/window.code ?= ?(\d+)/)[1])
     if (code === 200) {
-      return html.match(/redirect_uri="(.+)"/)[1]
+      return html.match(/redirect_uri ?= ?"(.+)"/)[1]
     }
   }
 }
@@ -163,19 +163,14 @@ export async function synccheck(): Promise<{
   const html = await rq({
     method: 'POST',
     url: `https://webpush.wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/synccheck`,
-    qs: {
-      sid: (await getBaseRequest()).Sid,
-      skey: (await getBaseRequest()).Skey,
-      uin: (await getBaseRequest()).Uin,
-      deviceid: (await getBaseRequest()).DeviceID,
-    },
+    qs: mapKeys(await getBaseRequest(), (value, key) => key.toLowerCase()),
     json: {
       BaseRequest: await getBaseRequest(),
     },
   })
   return {
-    retcode: parseInt(html.match(/retcode:"(.+)"/)[1]),
-    selector: parseInt(html.match(/selector:"(.+)"/)[1]),
+    retcode: parseInt(html.match(/retcode ?: ?"(.+)"/)[1]),
+    selector: parseInt(html.match(/selector ?: ?"(.+)"/)[1]),
   }
 }
 
@@ -198,10 +193,7 @@ export async function webwxsync(): Promise<{
   const response: request.FullResponse = await rq({
     method: 'POST',
     url: `https://wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxsync`,
-    qs: {
-      sid: (await getBaseRequest()).Sid,
-      skey: (await getBaseRequest()).Skey,
-    },
+    qs: mapKeys(await getBaseRequest(), (value, key) => key.toLowerCase()),
     json: {
       BaseRequest: await getBaseRequest(),
       SyncKey: await getSyncKey(),
@@ -227,7 +219,6 @@ export async function webwxgetcontact(): Promise<{
       BaseRequest: await getBaseRequest(),
     },
   })
-  setContacts(json.MemberList)
   return json
 }
 
