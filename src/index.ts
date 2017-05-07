@@ -1,5 +1,13 @@
 import 'source-map-support/register'
 import * as https from 'https'
-import { sleep, qrcode } from './utils'
-import { BaseRequest, Contact } from './model'
-import * as api from './api'
+import * as yargs from 'yargs'
+import {
+  login,
+  contacts,
+} from './commands'
+
+yargs
+  .command(login)
+  .command(contacts)
+  .help()
+  .argv

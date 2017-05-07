@@ -21,6 +21,7 @@ import {
   setSyncKey,
   getUser,
   setUser,
+  setContacts,
 } from './store'
 
 const rq = request.defaults({
@@ -189,6 +190,7 @@ export async function webwxgetcontact(): Promise<{
       BaseRequest: await getBaseRequest(),
     },
   })
+  setContacts(json.MemberList)
   return json
 }
 

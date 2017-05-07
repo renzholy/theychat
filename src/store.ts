@@ -1,8 +1,13 @@
 import * as Redis from 'ioredis'
 import {
+  flatten,
+  mapValues,
+} from 'lodash'
+import {
   BaseRequest,
   SyncKey,
   User,
+  Contact,
 } from './model'
 
 const redis = new Redis({
@@ -28,7 +33,7 @@ export async function getBaseRequest(): Promise<BaseRequest> {
 }
 
 export async function setBaseRequest(baseRequest: BaseRequest): Promise<void> {
-  return await redis.set('BaseRequest', JSON.stringify(baseRequest))
+  await redis.set('BaseRequest', JSON.stringify(baseRequest))
 }
 
 export async function getSyncKey(): Promise<SyncKey> {
@@ -36,7 +41,7 @@ export async function getSyncKey(): Promise<SyncKey> {
 }
 
 export async function setSyncKey(syncKey: SyncKey): Promise<void> {
-  return await redis.set('SyncKey', JSON.stringify(syncKey))
+  await redis.set('SyncKey', JSON.stringify(syncKey))
 }
 
 export async function getUser(): Promise<User> {
@@ -44,5 +49,20 @@ export async function getUser(): Promise<User> {
 }
 
 export async function setUser(user: User): Promise<void> {
-  return await redis.set('User', JSON.stringify(user))
+  await redis.set('User', JSON.stringify(user))
+}
+
+export async function updateContacts(contacts: Contact[]): Promise<void> {
+  await redis.hmset('Contacts', flatten(contacts.map(contact => [contact.UserName, JSON.stringify(contact)])))
+}
+
+export async function setContacts(contacts: Contact[]): Promise<void> {
+  await redis.pipeline()
+    .del('Contacts')
+    .hmset('Contacts', flatten(contacts.map(contact => [contact.UserName, JSON.stringify(contact)])))
+    .exec()
+}
+
+export async function getContacts(): Promise<{ [key: string]: Contact }> {
+  return mapValues(await redis.hgetall('Contacts'), contact => JSON.parse(contact))
 }

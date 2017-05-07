@@ -10,6 +10,9 @@
     "dev": "NODE_ENV=dev && tsc -w & nodemon ./dist/src/index.js",
     "test": "NODE_ENV=dev && rm -rf ./dist && tsc && ava -s ./dist/test/*"
   },
+  "bin": {
+    "theychat": "node ./dist/src/index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RenzHoly/theychat.git"
@@ -22,6 +25,8 @@
   "homepage": "https://github.com/RenzHoly/theychat#readme",
   "dependencies": {
     "ioredis": "^2.5.0",
+    "lodash": "^4.17.4",
+    "punycode": "^2.1.0",
     "qrcode-terminal": "^0.11.0",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.3",
@@ -30,6 +35,7 @@
   },
   "devDependencies": {
     "@types/ioredis": "0.0.23",
+    "@types/lodash": "^4.14.64",
     "@types/request-promise-native": "^1.0.2",
     "@types/yargs": "^6.6.0",
     "ava": "^0.19.1",
