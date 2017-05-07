@@ -21,7 +21,7 @@
   "homepage": "https://github.com/RenzHoly/fang-chat#readme",
   "dependencies": {
     "@types/request-promise-native": "^1.0.2",
-    "blessed": "^0.1.81",
+    "ioredis": "^2.5.0",
     "qrcode-terminal": "^0.11.0",
     "request": "^2.81.0",
     "request-promise": "^4.2.0",
@@ -29,7 +29,7 @@
     "source-map-support": "^0.4.15"
   },
   "devDependencies": {
-    "@types/blessed": "^0.1.5",
+    "@types/ioredis": "0.0.23",
     "@types/request": "0.0.42",
     "@types/request-promise": "^4.1.33",
     "@types/request-promise-native": "^1.0.2",

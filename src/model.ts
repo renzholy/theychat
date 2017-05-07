@@ -106,11 +106,25 @@ export type SyncKey = {
 }
 
 export type RecommendInfo = {
-
+  Alias: string,
+  AttrStatus: number,
+  City: string,
+  Content: string,
+  NickName: string,
+  OpCode: number,
+  Province: string,
+  QQNum: number,
+  Scene: number,
+  Sex: number,
+  Signature: string,
+  Ticket: string,
+  UserName: string,
+  VerifyFlag: number,
 }
 
 export type AppInfo = {
-
+  AppID: string,
+  Type: number,
 }
 
 export type AddMsg = {
@@ -131,9 +145,9 @@ export type AddMsg = {
   AppMsgType: number,
   StatusNotifyCode: number,
   StatusNotifyUserName: string,
-  RecommendInfo,
+  RecommendInfo: RecommendInfo,
   ForwardFlag: number,
-  AppInfo,
+  AppInfo: AppInfo,
   HasProductId: number,
   Ticket: string,
   ImgHeight: number,

@@ -3,42 +3,54 @@ import {
   login,
   webwxnewloginpage,
   webwxinit,
+  synccheck,
   webwxsync,
   webwxgetcontact,
   webwxsendmsg,
 } from '../src/api'
-import { qrcode } from '../src/utils'
+import {
+  qrcode,
+} from '../src/utils'
 import test from 'ava'
 
-const DeviceID = "e" + ("" + Math.random().toFixed(15)).substring(2, 17)
-
-test('api', async t => {
+test('login', async (t) => {
   const { uuid, code } = await jslogin()
   t.is(code, 200)
   console.log(await qrcode(`https://login.weixin.qq.com/l/${uuid}`, true))
 
-  const { redirect_uri } = await login(uuid)
+  const redirect_uri = await login(uuid)
+  console.log(redirect_uri)
   t.true(redirect_uri.startsWith('http'))
 
-  const { wxsid, skey, wxuin, pass_ticket } = await webwxnewloginpage(redirect_uri)
-  t.true(skey.startsWith('@'))
+  await webwxnewloginpage(redirect_uri)
+})
 
-  const base_request = {
-    DeviceID,
-    Sid: wxsid,
-    Skey: skey,
-    Uin: wxuin,
-  }
+test('init', async (t) => {
+  const response = await webwxinit()
+  console.log(response)
+  t.is(response.BaseResponse.Ret, 0)
+})
 
-  const { ContactList, BaseResponse: { Ret }, SyncKey, User } = await webwxinit(base_request)
-  t.is(Ret, 0)
+test('check sync', async (t) => {
+  const response = await synccheck()
+  console.log(response)
+  t.is(response.retcode, 0)
+})
 
-  const sync = await webwxsync(base_request, SyncKey)
-  t.is(sync.BaseResponse.Ret, 0)
+test('sync', async (t) => {
+  const response = await webwxsync()
+  console.log(response)
+  t.is(response.BaseResponse.Ret, 0)
+})
 
-  const contacts = await webwxgetcontact(base_request)
-  t.is(contacts.BaseResponse.Ret, 0)
+test('get contacts', async (t) => {
+  const response = await webwxgetcontact()
+  console.log(response)
+  t.is(response.BaseResponse.Ret, 0)
+})
 
-  const sent = await webwxsendmsg(base_request, User.UserName, 'filehelper', '123')
-  t.is(sent.BaseResponse.Ret, 0)
+test('send msg', async (t) => {
+  const response = await webwxsendmsg('filehelper', '123')
+  console.log(response)
+  t.is(response.BaseResponse.Ret, 0)
 })

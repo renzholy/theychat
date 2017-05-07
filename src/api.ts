@@ -13,6 +13,15 @@ import {
   Profile,
 } from './model'
 import { sleep } from './utils'
+import {
+  getDeviceID,
+  getBaseRequest,
+  setBaseRequest,
+  getSyncKey,
+  setSyncKey,
+  getUser,
+  setUser,
+} from './store'
 
 const rq = request.defaults({
   pool: false,
@@ -20,7 +29,8 @@ const rq = request.defaults({
   gzip: true,
 })
 
-const host = 'wx.qq.com'
+const ApiVersion = ''
+// const ApiVersion = '2'
 
 export async function jslogin(): Promise<{
   code: number,
@@ -42,9 +52,7 @@ export async function jslogin(): Promise<{
   }
 }
 
-export async function login(uuid: string): Promise<{
-  redirect_uri: string,
-}> {
+export async function login(uuid: string): Promise<string> {
   let code = 0
   while (true) {
     const html = await rq({
@@ -59,36 +67,30 @@ export async function login(uuid: string): Promise<{
     })
     code = parseInt(html.match(/window.code ?= ?(\d+)/)[1])
     if (code === 200) {
-      return {
-        redirect_uri: html.match(/redirect_uri="(.+)"/)[1],
-      }
+      return html.match(/redirect_uri="(.+)"/)[1]
     }
   }
 }
 
-export async function webwxnewloginpage(redirect_uri: string): Promise<{
-  wxuin: number,
-  skey: string,
-  wxsid: string,
-  pass_ticket: string,
-}> {
+export async function webwxnewloginpage(redirect_uri: string): Promise<void> {
   const html = await rq({
     url: redirect_uri,
     headers: {
-      Host: host,
+      Host: `wx${ApiVersion}.qq.com`,
     },
     followRedirect: false,
     simple: false,
   })
-  return {
-    wxuin: parseInt(html.match(/<wxuin>(.+)<\/wxuin>/)[1]),
-    skey: html.match(/<skey>(.+)<\/skey>/)[1],
-    wxsid: html.match(/<wxsid>(.+)<\/wxsid>/)[1],
-    pass_ticket: html.match(/<pass_ticket>(.+)<\/pass_ticket>/)[1],
+  const baseRequest = {
+    Uin: parseInt(html.match(/<wxuin>(.+)<\/wxuin>/)[1]),
+    Skey: html.match(/<skey>(.+)<\/skey>/)[1],
+    Sid: html.match(/<wxsid>(.+)<\/wxsid>/)[1],
+    DeviceID: await getDeviceID(),
   }
+  await setBaseRequest(baseRequest)
 }
 
-export async function webwxinit(base_request: BaseRequest): Promise<{
+export async function webwxinit(): Promise<{
   BaseResponse: BaseResponse,
   Count: number,
   ContactList: Contact[],
@@ -104,26 +106,45 @@ export async function webwxinit(base_request: BaseRequest): Promise<{
   MPSubscribeMsgList: MPSubscribeMsg[],
   ClickReportInterval: number,
 }> {
-  while (true) {
-    try {
-      const json = await rq({
-        method: 'POST',
-        url: `https://${host}/cgi-bin/mmwebwx-bin/webwxinit`,
-        qs: {
-          r: ~Date.now(),
-        },
-        json: {
-          BaseRequest: base_request,
-        },
-      })
-      return json
-    } catch (err) {
-      await sleep(5000)
-    }
+  const json = await rq({
+    method: 'POST',
+    url: `https://wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxinit`,
+    qs: {
+      r: ~Date.now(),
+    },
+    json: {
+      BaseRequest: await getBaseRequest(),
+    },
+  })
+  await setSyncKey(json.SyncKey)
+  await setUser(json.User)
+  return json
+}
+
+export async function synccheck(): Promise<{
+  retcode: number,
+  selector: number,
+}> {
+  const html = await rq({
+    method: 'POST',
+    url: `https://webpush.wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/synccheck`,
+    qs: {
+      sid: (await getBaseRequest()).Sid,
+      skey: (await getBaseRequest()).Skey,
+      uin: (await getBaseRequest()).Uin,
+      deviceid: (await getBaseRequest()).DeviceID,
+    },
+    json: {
+      BaseRequest: await getBaseRequest(),
+    },
+  })
+  return {
+    retcode: parseInt(html.match(/retcode:"(.+)"/)[1]),
+    selector: parseInt(html.match(/selector:"(.+)"/)[1]),
   }
 }
 
-export async function webwxsync(base_request: BaseRequest, sync_key: SyncKey): Promise<{
+export async function webwxsync(): Promise<{
   BaseResponse: BaseResponse,
   AddMsgCount: number,
   AddMsgList: AddMsg[],
@@ -139,29 +160,23 @@ export async function webwxsync(base_request: BaseRequest, sync_key: SyncKey): P
   SKey: string,
   SyncCheckKey: SyncKey,
 }> {
-  while (true) {
-    try {
-      const json = await rq({
-        method: 'POST',
-        url: `https://${host}/cgi-bin/mmwebwx-bin/webwxsync`,
-        qs: {
-          sid: base_request.Sid,
-          skey: base_request.Skey,
-        },
-        json: {
-          BaseRequest: base_request,
-          SyncKey: sync_key,
-          rr: ~Date.now(),
-        },
-      })
-      return json
-    } catch (err) {
-      await sleep(5000)
-    }
-  }
+  const json = await rq({
+    method: 'POST',
+    url: `https://wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxsync`,
+    qs: {
+      sid: (await getBaseRequest()).Sid,
+      skey: (await getBaseRequest()).Skey,
+    },
+    json: {
+      BaseRequest: await getBaseRequest(),
+      SyncKey: await getSyncKey(),
+      rr: ~Date.now(),
+    },
+  })
+  return json
 }
 
-export async function webwxgetcontact(base_request: BaseRequest): Promise<{
+export async function webwxgetcontact(): Promise<{
   BaseResponse: BaseResponse,
   MemberCount: number,
   MemberList: Contact[],
@@ -169,15 +184,15 @@ export async function webwxgetcontact(base_request: BaseRequest): Promise<{
 }> {
   const json = await rq({
     method: 'POST',
-    url: `https://${host}/cgi-bin/mmwebwx-bin/webwxgetcontact`,
+    url: `https://wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact`,
     json: {
-      BaseRequest: base_request,
+      BaseRequest: await getBaseRequest(),
     },
   })
   return json
 }
 
-export async function webwxsendmsg(base_request: BaseRequest, from: string, to: string, content: string): Promise<{
+export async function webwxsendmsg(to: string, content: string): Promise<{
   BaseResponse: BaseResponse,
   MsgId: string,
   LocalID: string,
@@ -185,13 +200,13 @@ export async function webwxsendmsg(base_request: BaseRequest, from: string, to: 
   const Id = Date.now() * 1000 + Math.random() * 1000
   const json = await rq({
     method: 'POST',
-    url: `https://${host}/cgi-bin/mmwebwx-bin/webwxsendmsg`,
+    url: `https://wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg`,
     json: {
-      BaseRequest: base_request,
+      BaseRequest: await getBaseRequest(),
       Msg: {
         ClientMsgId: Id,
         Content: content,
-        FromUserName: from,
+        FromUserName: (await getUser()).UserName,
         LocalID: Id,
         ToUserName: to,
         Type: 1,
