@@ -1,38 +1,37 @@
 {
-  "name": "fang-chat",
-  "version": "1.0.0",
+  "name": "theychat",
+  "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.js",
   "scripts": {
     "start": "node ./dist/src/index.js",
-    "build": "rm -rf ./dist && tsc",
+    "build": "rm -rf ./dist && tsc -d",
     "dev": "NODE_ENV=dev && tsc -w & nodemon ./dist/src/index.js",
     "test": "NODE_ENV=dev && rm -rf ./dist && tsc && ava -s ./dist/test/*"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RenzHoly/fang-chat.git"
+    "url": "git+https://github.com/RenzHoly/theychat.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/RenzHoly/fang-chat/issues"
+    "url": "https://github.com/RenzHoly/theychat/issues"
   },
-  "homepage": "https://github.com/RenzHoly/fang-chat#readme",
+  "homepage": "https://github.com/RenzHoly/theychat#readme",
   "dependencies": {
-    "@types/request-promise-native": "^1.0.2",
     "ioredis": "^2.5.0",
     "qrcode-terminal": "^0.11.0",
     "request": "^2.81.0",
-    "request-promise": "^4.2.0",
     "request-promise-native": "^1.0.3",
-    "source-map-support": "^0.4.15"
+    "source-map-support": "^0.4.15",
+    "yargs": "^8.0.1"
   },
   "devDependencies": {
     "@types/ioredis": "0.0.23",
-    "@types/request": "0.0.42",
-    "@types/request-promise": "^4.1.33",
     "@types/request-promise-native": "^1.0.2",
+    "@types/yargs": "^6.6.0",
     "ava": "^0.19.1",
     "nodemon": "^1.11.0",
     "typescript": "^2.2.2"

@@ -9,12 +9,16 @@ const redis = new Redis({
   keyPrefix: 'wechat:',
 })
 
+export function generateNewDeviceID(): string {
+  return 'e' + Math.random().toFixed(15).substring(2)
+}
+
 export async function getDeviceID(): Promise<string> {
   const deviceID = await redis.get('DeviceID')
   if (deviceID) {
     return deviceID
   }
-  const newDeviceID = "e" + ("" + Math.random().toFixed(15)).substring(2, 17)
+  const newDeviceID = generateNewDeviceID()
   await redis.set('DeviceID', newDeviceID)
   return newDeviceID
 }
