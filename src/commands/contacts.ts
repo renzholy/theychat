@@ -1,8 +1,5 @@
 import {
-  forEach,
-  map,
   sortBy,
-  chain,
 } from 'lodash'
 import * as Table from 'cli-table2'
 import {
@@ -47,6 +44,10 @@ function contactType(contact: Contact) {
   if (contact.VerifyFlag === 0) {
     return 'Contact'
   }
+  if (contact.VerifyFlag === 8) {
+    return 'Personal GZH'
+  }
+  return 'Company GZH'
 }
 
 export async function handler(argv) {
@@ -58,21 +59,17 @@ export async function handler(argv) {
       break
     }
     case 'list': {
-      const contacts = chain(await getContacts())
-        .filter(contact => contact.VerifyFlag === 0)
-        .sortBy('AttrStatus')
+      sortBy(await getContacts(), ['AttrStatus', 'VerifyFlag'])
         .map(contact => {
           return [
-            contact.AttrStatus === 0 ? 'Group' : 'Contact',
+            contactType(contact),
             formatText(contact.RemarkName),
             formatText(contact.NickName),
             contact.UserName,
           ]
+        }).forEach(contact => {
+          table.push(contact)
         })
-        .value()
-      forEach(contacts, contact => {
-        table.push(contact)
-      })
       console.log(table.toString())
       break
     }

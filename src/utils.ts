@@ -34,12 +34,13 @@ export function formatText(str: string): string {
   })
   emojis.forEach(emoji => {
     if (text.indexOf(emoji) >= 0) {
-      text = text.replace(new RegExp(emoji, 'g'), c => c + ' ')
+      text = text.replace(new RegExp(emoji, 'g'), e => e + ' ')
+      return
     }
   })
   return text.replace(LRO, '').replace(RLO, '').replace(EOF, '')
 }
 
 export function timestamp(): string {
-  return (Date.now() * 1000 + Math.random() * 1000).toString()
+  return ((Date.now() + Math.random()) * 1000).toString()
 }
