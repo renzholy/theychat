@@ -5,11 +5,13 @@ import {
   login,
   contacts,
   message,
+  watch
 } from './commands'
 
 yargs
   .command(login)
   .command(contacts)
   .command(message)
+  .command(watch)
   .help()
   .argv

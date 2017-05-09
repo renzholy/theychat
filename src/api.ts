@@ -36,6 +36,7 @@ import {
 const defaultRequest = request.defaults({
   pool: false,
   gzip: true,
+  timeout: 30 * 1000,
 })
 
 async function rq(options: request.Options): Promise<any> {
@@ -59,7 +60,7 @@ export async function jslogin(): Promise<{
       fun: 'new',
       lang: 'zh_CN',
       _: Date.now(),
-    }
+    },
   })
   return {
     code: parseInt(html.match(/QRLogin.code ?= ?(\d+)/)[1]),
@@ -150,7 +151,7 @@ export async function webwxstatusnotify(): Promise<{
       Code: 3,
       FromUserName: (await getUser()).UserName,
       ToUserName: (await getUser()).UserName,
-      ClientMsgId: timestamp(),
+      ClientMsgId: Date.now(),
     },
   })
   return json
@@ -161,11 +162,13 @@ export async function synccheck(): Promise<{
   selector: number,
 }> {
   const html = await rq({
-    method: 'POST',
+    method: 'GET',
     url: `https://webpush.wx${ApiVersion}.qq.com/cgi-bin/mmwebwx-bin/synccheck`,
-    qs: mapKeys(await getBaseRequest(), (value, key) => key.toLowerCase()),
-    json: {
-      BaseRequest: await getBaseRequest(),
+    qs: {
+      ...mapKeys(await getBaseRequest(), (value, key) => key.toLowerCase()),
+      synckey: (await getSyncKey()).List.map(item => `${item.Key}_${item.Val}`).join('|'),
+      r: Date.now(),
+      _: Date.now(),
     },
   })
   return {

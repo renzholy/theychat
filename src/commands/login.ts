@@ -3,7 +3,6 @@ import {
   login,
   webwxnewloginpage,
   webwxinit,
-  webwxsync,
   webwxstatusnotify,
 } from '../api'
 import {
@@ -23,7 +22,6 @@ export async function handler(argv) {
   const redirect_uri = await login(uuid)
   await webwxnewloginpage(redirect_uri)
   console.log('init', (await webwxinit()).BaseResponse.Ret)
-  console.log('sync', (await webwxsync()).BaseResponse.Ret)
   console.log('status notify', (await webwxstatusnotify()).BaseResponse.Ret)
   console.log('login succeed')
   process.exit(0)
