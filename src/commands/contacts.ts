@@ -18,16 +18,13 @@ import {
 
 const table = new Table({
   head: ['Type', 'Remark Name', 'Nick Name', 'ID'],
-  colWidths: [10, 10, 20],
+  colWidths: [15, 15, 30],
   chars: {
-    'top': '', 'top-mid': '', 'top-left': '', 'top-right': '',
-    'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
-    'left': '', 'left-mid': '', 'mid': '', 'mid-mid': '',
-    'right': '', 'right-mid': '', 'middle': ' ',
+    'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '',
   },
   style: {
-    'padding-left': 0,
-    'padding-right': 0,
+    'padding-left': 1,
+    'padding-right': 1,
   },
 })
 
