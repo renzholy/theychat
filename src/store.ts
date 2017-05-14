@@ -83,3 +83,7 @@ export async function setContacts(contacts: Contact[]): Promise<void> {
 export async function getContacts(): Promise<{ [key: string]: Contact }> {
   return mapValues(await redis.hgetall('Contacts'), contact => JSON.parse(contact))
 }
+
+export async function getContact(userName: string): Promise<Contact> {
+  return JSON.parse(await redis.hget('Contacts', userName))
+}
