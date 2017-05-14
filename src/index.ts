@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import 'source-map-support/register'
 import * as https from 'https'
 import * as yargs from 'yargs'

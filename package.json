@@ -11,7 +11,7 @@
     "test": "NODE_ENV=dev && rm -rf ./dist && tsc && ava -s ./dist/test/*"
   },
   "bin": {
-    "theychat": "node ./dist/src/index.js"
+    "theychat": "./dist/src/index.js"
   },
   "repository": {
     "type": "git",
