@@ -7,7 +7,7 @@ import {
 } from '../api'
 import {
   Contact,
-} from '../model'
+} from '../type'
 import {
   setContacts,
   getContacts,

@@ -16,7 +16,7 @@ export const describe = 'scan & login'
 export const builder = {}
 
 export async function handler(argv) {
-  const { uuid, code } = await jslogin()
+  const { uuid } = await jslogin()
   console.log('scan to login')
   console.log(await qrcode(`https://login.weixin.qq.com/l/${uuid}`, true))
   const redirect_uri = await login(uuid)

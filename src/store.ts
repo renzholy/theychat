@@ -8,10 +8,10 @@ import {
   SyncKey,
   User,
   Contact,
-} from './model'
+} from './type'
 
-const redis = new Redis({
-  keyPrefix: 'wechat:',
+const redis = new Redis('localhost', {
+  keyPrefix: 'theychat:',
 })
 
 export function generateNewDeviceID(): string {

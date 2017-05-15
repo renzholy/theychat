@@ -7,7 +7,7 @@ import {
 } from '../store'
 import {
   Contact,
-} from '../model'
+} from '../type'
 
 export const command = 'watch'
 
