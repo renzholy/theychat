@@ -45,8 +45,7 @@ async function rq(options: request.Options): Promise<any> {
   return await defaultRequest(options)
 }
 
-const apiVersion = ''
-// const ApiVersion = '2'
+let version = ''
 
 export async function jslogin(): Promise<{
   code: number,
@@ -83,7 +82,9 @@ export async function login(uuid: string): Promise<string> {
     })
     code = parseInt(html.match(/window.code ?= ?(\d+)/)[1])
     if (code === 200) {
-      return html.match(/redirect_uri ?= ?"(.+)"/)[1]
+      const redirect_uri = html.match(/redirect_uri ?= ?"(.+)"/)[1]
+      version = redirect_uri.match(/wx(2)?\.qq\.com/)[1] || ''
+      return redirect_uri
     }
   }
 }
@@ -92,7 +93,7 @@ export async function webwxnewloginpage(redirect_uri: string): Promise<void> {
   const response: request.FullResponse = await rq({
     url: redirect_uri,
     headers: {
-      Host: `wx${apiVersion}.qq.com`,
+      Host: `wx${version}.qq.com`,
     },
     followRedirect: false,
     simple: false,
@@ -115,7 +116,7 @@ export async function webwxpushloginurl(): Promise<{
 }> {
   const json = await rq({
     method: 'GET',
-    url: `https://wx${apiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxpushloginurl`,
+    url: `https://wx${version}.qq.com/cgi-bin/mmwebwx-bin/webwxpushloginurl`,
     qs: {
       uin: (await getUser()).Uin,
     },
@@ -142,7 +143,7 @@ export async function webwxinit(): Promise<{
 }> {
   const json = await rq({
     method: 'POST',
-    url: `https://wx${apiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxinit`,
+    url: `https://wx${version}.qq.com/cgi-bin/mmwebwx-bin/webwxinit`,
     qs: {
       r: ~Date.now(),
     },
@@ -161,7 +162,7 @@ export async function webwxstatusnotify(): Promise<{
 }> {
   const json = await rq({
     method: 'POST',
-    url: `https://wx${apiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxstatusnotify`,
+    url: `https://wx${version}.qq.com/cgi-bin/mmwebwx-bin/webwxstatusnotify`,
     json: {
       BaseRequest: await getBaseRequest(),
       Code: 3,
@@ -179,7 +180,7 @@ export async function synccheck(): Promise<{
 }> {
   const html = await rq({
     method: 'GET',
-    url: `https://webpush.wx${apiVersion}.qq.com/cgi-bin/mmwebwx-bin/synccheck`,
+    url: `https://webpush.wx${version}.qq.com/cgi-bin/mmwebwx-bin/synccheck`,
     qs: {
       ...mapKeys(await getBaseRequest(), (value, key) => key.toLowerCase()),
       synckey: (await getSyncKey()).List.map(item => `${item.Key}_${item.Val}`).join('|'),
@@ -211,7 +212,7 @@ export async function webwxsync(): Promise<{
 }> {
   const response: request.FullResponse = await rq({
     method: 'POST',
-    url: `https://wx${apiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxsync`,
+    url: `https://wx${version}.qq.com/cgi-bin/mmwebwx-bin/webwxsync`,
     qs: mapKeys(await getBaseRequest(), (value, key) => key.toLowerCase()),
     json: {
       BaseRequest: await getBaseRequest(),
@@ -233,7 +234,7 @@ export async function webwxgetcontact(): Promise<{
 }> {
   const json = await rq({
     method: 'POST',
-    url: `https://wx${apiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact`,
+    url: `https://wx${version}.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact`,
     json: {
       BaseRequest: await getBaseRequest(),
     },
@@ -249,7 +250,7 @@ export async function webwxsendmsg(to: string, content: string): Promise<{
   const ts = timestamp()
   const json = await rq({
     method: 'POST',
-    url: `https://wx${apiVersion}.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg`,
+    url: `https://wx${version}.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg`,
     json: {
       BaseRequest: await getBaseRequest(),
       Msg: {
