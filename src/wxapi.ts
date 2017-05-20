@@ -2,7 +2,6 @@ import { reduce, map, set } from 'lodash'
 import { defaults, FullResponse, Options } from 'request-promise-native'
 
 import { BaseRequest, BaseResponse, Contact, SyncKey, User, MPSubscribeMsg, AddMsg, DelContact, ModChatRoomMember, ModContact, Profile } from './type'
-import { qrcode } from './utils'
 
 const request = defaults({
   pool: false,
@@ -236,7 +235,7 @@ export class WXAuth {
     this.cookies = cookies
   }
 
-  public static async login(uin?: number, cookies?: {
+  public static async login(cb: (uuid: string) => void, uin?: number, cookies?: {
     [key: string]: string
   }): Promise<WXAuth> {
     let redirectUri
@@ -251,7 +250,7 @@ export class WXAuth {
     } else {
       const { uuid, code } = await WXAuth.jsLogin()
       if (code === 200) {
-        console.log(await qrcode(`https://login.weixin.qq.com/l/${uuid}`, true))
+        await cb(uuid)
         const scan = await WXAuth.waitForScan(uuid)
         redirectUri = scan.redirectUri
         version = scan.version
