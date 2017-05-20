@@ -50,7 +50,7 @@ export class WXAPI {
       },
     })
     this.user = json.User
-    this.synccheck = json.SyncKey
+    this.syncKey = json.SyncKey
     return json
   }
 
