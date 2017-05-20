@@ -1,6 +1,7 @@
-import { reduce, map } from 'lodash'
-import { defaults, FullResponse } from 'request-promise-native'
+import { reduce, map, set } from 'lodash'
+import { defaults, FullResponse, Options } from 'request-promise-native'
 
+import { BaseRequest, BaseResponse, Contact, SyncKey, User, MPSubscribeMsg, AddMsg, DelContact, ModChatRoomMember, ModContact, Profile } from './type'
 import { qrcode } from './utils'
 
 const request = defaults({
@@ -11,61 +12,211 @@ const request = defaults({
 
 export class WXAPI {
   private auth: WXAuth
+  private user: User
+  private syncKey: SyncKey
 
   constructor(auth) {
     this.auth = auth
   }
 
-  async webwxinit() {
+  private async request(options: Options) {
+    set(options, 'headers.Cookie', map(this.auth.cookies, (value, key) => `${key}=${value}`).join(';'))
+    return await request(options)
   }
 
-  async webwxstatusnotify() {
+  public async webwxinit(): Promise<{
+    BaseResponse: BaseResponse,
+    Count: number,
+    ContactList: Contact[],
+    SyncKey: SyncKey,
+    User: User,
+    ChatSet: string,
+    Skey: string,
+    ClientVersion: number,
+    SystemTime: number,
+    GrayScale: number,
+    InviteStartCount: number,
+    MPSubscribeMsgCount: number,
+    MPSubscribeMsgList: MPSubscribeMsg[],
+    ClickReportInterval: number,
+  }> {
+    const json = await this.request({
+      method: 'POST',
+      url: `https://wx${this.auth.version}.qq.com/cgi-bin/mmwebwx-bin/webwxinit`,
+      qs: {
+        r: ~Date.now(),
+      },
+      json: {
+        BaseRequest: this.auth.baseRequestBody(),
+      },
+    })
+    this.user = json.User
+    this.synccheck = json.SyncKey
+    return json
   }
 
-  async webwxgetcontact() {
+  public async webwxstatusnotify(): Promise<{
+    BaseResponse: BaseResponse,
+    MsgID: string,
+  }> {
+    const json = await this.request({
+      method: 'POST',
+      url: `https://wx${this.auth.version}.qq.com/cgi-bin/mmwebwx-bin/webwxstatusnotify`,
+      json: {
+        BaseRequest: this.auth.baseRequestBody(),
+        Code: 3,
+        FromUserName: this.user.UserName,
+        ToUserName: this.user.UserName,
+        ClientMsgId: Date.now(),
+      },
+    })
+    return json
   }
 
-  async webwxbatchgetcontact() {
+  public async webwxgetcontact(): Promise<{
+    BaseResponse: BaseResponse,
+    MemberList: Contact[],
+    MemberCount: number,
+    Seq: number,
+  }> {
+    const json = await this.request({
+      method: 'POST',
+      url: `https://wx${this.auth.version}.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact`,
+      json: {
+        BaseRequest: this.auth.baseRequestBody(),
+      },
+    })
+    return json
   }
 
-  async synccheck() {
+  public async webwxbatchgetcontact(contacts: Contact[]): Promise<{
+    BaseResponse: BaseResponse,
+    ContactList: Contact[],
+    Count: number,
+  }> {
+    const json = await this.request({
+      method: 'POST',
+      url: `https://wx${this.auth.version}.qq.com/cgi-bin/mmwebwx-bin/webwxbatchgetcontact`,
+      qs: {
+        type: 'ex',
+        r: Date.now(),
+      },
+      json: {
+        BaseRequest: this.auth.baseRequestBody(),
+        Count: contacts.length,
+        List: map(contacts, contact => ({
+          EncryChatRoomId: '',
+          UserName: contact.UserName,
+        })),
+      },
+    })
+    return json
   }
 
-  async webwxsync() {
+  public async synccheck(): Promise<{
+    retcode: number,
+    selector: number,
+  }> {
+    const html = await this.request({
+      method: 'GET',
+      url: `https://webpush.wx${this.auth.version}.qq.com/cgi-bin/mmwebwx-bin/synccheck`,
+      qs: {
+        ...this.auth.baseRequestQuery(),
+        synckey: this.syncKey.List.map(item => `${item.Key}_${item.Val}`).join('|'),
+        r: Date.now(),
+        _: Date.now(),
+      },
+    })
+    return {
+      retcode: parseInt(html.match(/retcode ?: ?"(.+)"/)[1]),
+      selector: parseInt(html.match(/selector ?: ?"(.+)"/)[1]),
+    }
   }
 
-  async webwxsendmsg() {
+  public async webwxsync(): Promise<{
+    BaseResponse: BaseResponse,
+    AddMsgCount: number,
+    AddMsgList: AddMsg[],
+    ModContactCount: number,
+    ModContactList: ModContact[],
+    DelContactCount: number,
+    DelContactList: DelContact[],
+    ModChatRoomMemberCount: number,
+    ModChatRoomMemberList: ModChatRoomMember[],
+    Profile: Profile,
+    ContinueFlag: number,
+    SyncKey: SyncKey,
+    SKey: string,
+    SyncCheckKey: SyncKey,
+  }> {
+    const json = await this.request({
+      method: 'POST',
+      url: `https://wx${this.auth.version}.qq.com/cgi-bin/mmwebwx-bin/webwxsync`,
+      qs: this.auth.baseRequestQuery(),
+      json: {
+        BaseRequest: this.auth.baseRequestBody(),
+        SyncKey: this.syncKey,
+        rr: ~Date.now(),
+      },
+    })
+    this.syncKey = json.SyncKey
+    return json
   }
 
-  async webwxrevokemsg() {
+  public async webwxsendmsg(target: Contact, content: string, type: number = 1): Promise<{
+    BaseResponse: BaseResponse,
+    MsgId: string,
+    LocalID: string,
+  }> {
+    const msgId = ((Date.now() + Math.random()) * 1000).toString()
+    const json = await this.request({
+      method: 'POST',
+      url: `https://wx${this.auth.version}.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg`,
+      json: {
+        BaseRequest: this.auth.baseRequestBody(),
+        Msg: {
+          ClientMsgId: msgId,
+          Content: content,
+          FromUserName: this.user.UserName,
+          LocalID: msgId,
+          ToUserName: target.UserName,
+          Type: type,
+        },
+        Scene: 0,
+      },
+    })
+    return json
   }
 
-  async webwxsendmsgemotion() {
+  public async webwxrevokemsg() {
   }
 
-  async webwxgeticon() {
+  public async webwxsendmsgemotion() {
   }
 
-  async webwxgetheadimg() {
+  public async webwxgeticon() {
   }
 
-  async webwxgetmsgimg() {
+  public async webwxgetheadimg() {
   }
 
-  async webwxgetvideo() {
+  public async webwxgetmsgimg() {
   }
 
-  async webwxgetvoice() {
+  public async webwxgetvideo() {
+  }
+
+  public async webwxgetvoice() {
   }
 }
 
 export class WXAuth {
-  version: string
-  uin: number
-  skey: string
-  sid: string
-  deviceId: string
-  cookies: {
+  public version: string
+  public uin: number
+  public skey: string
+  public sid: string
+  public deviceId: string
+  public cookies: {
     [key: string]: string
   }
 
