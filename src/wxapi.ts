@@ -235,23 +235,34 @@ export class WXAuth {
     this.cookies = cookies
   }
 
-  public static async uuid(uin?: number, cookies?: {
+  public static async uuid(cookies?: {
     [key: string]: string
-  }): Promise<string | null> {
+  }): Promise<{
+    uuid?: string
+    scan: boolean
+  }> {
     let redirectUri
     let version
-    if (uin && cookies) {
-      const { uuid, ret } = await WXAuth.pushLogin(uin, cookies)
+    if (cookies) {
+      const { uuid, ret } = await WXAuth.pushLogin(cookies)
       if (ret === '0') {
-        return uuid
+        return {
+          scan: false,
+          uuid,
+        }
       }
     } else {
       const { uuid, code } = await WXAuth.jsLogin()
       if (code === 200) {
-        return uuid
+        return {
+          scan: true,
+          uuid,
+        }
       }
     }
-    return null
+    return {
+      scan: false,
+    }
   }
 
   public static async login(uuid: string): Promise<WXAuth> {
@@ -289,7 +300,7 @@ export class WXAuth {
     }
   }
 
-  private static async pushLogin(uin: number, cookies: {
+  private static async pushLogin(cookies: {
     [key: string]: string
   }): Promise<{
     msg: string,
@@ -300,7 +311,7 @@ export class WXAuth {
       method: 'GET',
       url: `https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxpushloginurl`,
       qs: {
-        uin,
+        uin: cookies.wxuin,
       },
       headers: {
         Cookie: map(cookies, (value, key) => `${key}=${value}`).join(';'),

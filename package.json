@@ -8,7 +8,8 @@
     "start": "node ./dist/src/index.js",
     "build": "rm -rf ./dist && tsc -d",
     "dev": "NODE_ENV=dev && tsc -w & nodemon ./dist/src/index.js",
-    "test": "NODE_ENV=dev && rm -rf ./dist && tsc && ava -s ./dist/test/*"
+    "test": "NODE_ENV=dev && rm -rf ./dist && xo && tsc && ava -s ./dist/test/*",
+    "lint": "xo"
   },
   "bin": {
     "theychat": "./dist/src/index.js"
@@ -25,6 +26,7 @@
   "homepage": "https://github.com/RenzHoly/theychat#readme",
   "dependencies": {
     "cli-table2": "^0.2.0",
+    "configstore": "^3.1.0",
     "emojis-list": "^2.1.0",
     "ioredis": "^2.5.0",
     "lodash": "^4.17.4",
@@ -36,12 +38,18 @@
     "yargs": "^8.0.1"
   },
   "devDependencies": {
+    "@types/configstore": "^2.1.1",
     "@types/ioredis": "0.0.23",
     "@types/lodash": "^4.14.64",
     "@types/request-promise-native": "^1.0.2",
     "@types/yargs": "^6.6.0",
     "ava": "^0.19.1",
+    "dashdash": "^1.14.1",
     "nodemon": "^1.11.0",
-    "typescript": "^2.2.2"
+    "typescript": "^2.2.2",
+    "xo": "^0.18.2"
+  },
+  "xo": {
+    "space": 2
   }
 }

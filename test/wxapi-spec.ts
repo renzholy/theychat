@@ -6,7 +6,7 @@ import { qrcode } from '../src/utils'
 let api: WXAPI
 
 test.serial('login', async (t) => {
-  const uuid = await WXAuth.uuid()
+  const { uuid } = await WXAuth.uuid()
   t.truthy(typeof uuid === 'string')
   console.log(`https://login.weixin.qq.com/qrcode/${uuid}`)
   console.log(await qrcode(`https://login.weixin.qq.com/l/${uuid}`, true))
