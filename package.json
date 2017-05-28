@@ -4,9 +4,9 @@
   "description": "",
   "main": "dist/src/main.js",
   "scripts": {
-    "start": "electron ./src/main.js",
-    "build": "rm -rf ./dist && webpack",
-    "dev": "NODE_ENV=dev && webpack -w & electron ./src/main.js",
+    "start": "electron ./dist/src/main.js",
+    "build": "rm -rf ./dist && webpack && tsc",
+    "dev": "NODE_ENV=dev && webpack -w & tsc -w & electron ./dist/src/main.js",
     "test": "NODE_ENV=dev && rm -rf ./dist && webpack && ava -s ./dist/test/*"
   },
   "bin": {
@@ -23,23 +23,20 @@
   },
   "homepage": "https://github.com/RenzHoly/theychat#readme",
   "dependencies": {
+    "@types/react": "^15.0.25",
+    "@types/react-dom": "^15.5.0",
+    "electron": "^1.7.2",
     "lodash": "^4.17.4",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.3",
     "source-map-support": "^0.4.15"
   },
   "devDependencies": {
-    "@types/react": "^15.0.25",
-    "@types/react-dom": "^15.5.0",
-    "antd": "^2.10.2",
     "ava": "^0.19.1",
     "awesome-typescript-loader": "^3.1.3",
-    "css-loader": "^0.28.3",
-    "electron": "^1.7.2",
-    "react": "^15.5.4",
-    "react-dom": "^15.5.4",
     "source-map-loader": "^0.2.1",
-    "style-loader": "^0.18.1",
     "typescript": "^2.3.3"
   }
 }

@@ -1,4 +1,4 @@
 # TheyChat
-## A wechat client written in typescript
+## A cli wechat client written in typescript
 
 ## WIP
