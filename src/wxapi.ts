@@ -235,27 +235,29 @@ export class WXAuth {
     this.cookies = cookies
   }
 
-  public static async login(cb: (uuid: string) => void, uin?: number, cookies?: {
+  public static async uuid(uin?: number, cookies?: {
     [key: string]: string
-  }): Promise<WXAuth> {
+  }): Promise<string | null> {
     let redirectUri
     let version
     if (uin && cookies) {
       const { uuid, ret } = await WXAuth.pushLogin(uin, cookies)
       if (ret === '0') {
-        const scan = await WXAuth.waitForScan(uuid)
-        redirectUri = scan.redirectUri
-        version = scan.version
+        return uuid
       }
     } else {
       const { uuid, code } = await WXAuth.jsLogin()
       if (code === 200) {
-        await cb(uuid)
-        const scan = await WXAuth.waitForScan(uuid)
-        redirectUri = scan.redirectUri
-        version = scan.version
+        return uuid
       }
     }
+    return null
+  }
+
+  public static async login(uuid: string): Promise<WXAuth> {
+    const scan = await WXAuth.waitForScan(uuid)
+    const redirectUri = scan.redirectUri
+    const version = scan.version
     if (!redirectUri) {
       throw new Error('Login failed, no redirect URI')
     }
