@@ -33,7 +33,13 @@ const options = [
 
 const parser = createParser({ options })
 
-const opts = parser.parse(process.argv)
+let opts: any = {}
+try {
+  opts = parser.parse(process.argv)
+} catch (e) {
+  console.error('error: %s', e.message)
+  process.exit(1)
+}
 
 if (opts.verbose) {
   console.debug = console.log
@@ -47,16 +53,13 @@ commands(opts._args)
 
 if (opts.version) {
   console.log(pkg.version)
-  process.exit(0)
 }
 
 if (opts.help) {
   const help = parser.help({ includeEnv: true }).trimRight()
   console.log(`usage: ${pkg.name} [OPTIONS]\noptions:\n${help}`)
-  process.exit(0)
 }
 
 if (opts.completion) {
   console.log(parser.bashCompletion({ name: pkg.name }))
-  process.exit(0)
 }

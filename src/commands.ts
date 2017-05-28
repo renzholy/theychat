@@ -9,5 +9,4 @@ export default async function (args: string[]) {
       break
     }
   }
-  process.exit(0)
 }
