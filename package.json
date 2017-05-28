@@ -2,16 +2,15 @@
   "name": "theychat",
   "version": "0.0.1",
   "description": "",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.js",
+  "main": "dist/src/main.js",
   "scripts": {
-    "start": "node ./dist/src/index.js",
-    "build": "rm -rf ./dist && tsc -d",
-    "dev": "NODE_ENV=dev && tsc -w & nodemon ./dist/src/index.js",
-    "test": "NODE_ENV=dev && rm -rf ./dist && tsc && ava -s ./dist/test/*"
+    "start": "electron ./dist/src/main.js",
+    "build": "rm -rf ./dist && webpack && tsc",
+    "dev": "NODE_ENV=dev && webpack -w & tsc -w & electron ./dist/src/main.js",
+    "test": "NODE_ENV=dev && rm -rf ./dist && webpack && ava -s ./dist/test/*"
   },
   "bin": {
-    "theychat": "./dist/src/index.js"
+    "theychat": "./dist/src/main.js"
   },
   "repository": {
     "type": "git",
@@ -24,24 +23,20 @@
   },
   "homepage": "https://github.com/RenzHoly/theychat#readme",
   "dependencies": {
-    "cli-table2": "^0.2.0",
-    "emojis-list": "^2.1.0",
-    "ioredis": "^2.5.0",
+    "@types/react": "^15.0.25",
+    "@types/react-dom": "^15.5.0",
+    "electron": "^1.7.2",
     "lodash": "^4.17.4",
-    "punycode": "^2.1.0",
-    "qrcode-terminal": "^0.11.0",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.3",
-    "source-map-support": "^0.4.15",
-    "yargs": "^8.0.1"
+    "source-map-support": "^0.4.15"
   },
   "devDependencies": {
-    "@types/ioredis": "0.0.23",
-    "@types/lodash": "^4.14.64",
-    "@types/request-promise-native": "^1.0.2",
-    "@types/yargs": "^6.6.0",
     "ava": "^0.19.1",
-    "nodemon": "^1.11.0",
-    "typescript": "^2.2.2"
+    "awesome-typescript-loader": "^3.1.3",
+    "source-map-loader": "^0.2.1",
+    "typescript": "^2.3.3"
   }
 }

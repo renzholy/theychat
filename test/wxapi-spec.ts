@@ -1,14 +1,12 @@
 import 'source-map-support/register'
 import test from 'ava'
 import { WXAuth, WXAPI } from '../src/wxapi'
-import { qrcode } from '../src/utils'
 
 let api: WXAPI
 
 test.serial(async (t) => {
   const auth = await WXAuth.login(async (uuid) => {
     console.log(`https://login.weixin.qq.com/qrcode/${uuid}`)
-    console.log(await qrcode(`https://login.weixin.qq.com/l/${uuid}`, true))
   })
   api = new WXAPI(auth)
   t.truthy(typeof auth.uin === 'number')

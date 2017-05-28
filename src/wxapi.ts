@@ -14,7 +14,7 @@ export class WXAPI {
   private user: User
   private syncKey: SyncKey
 
-  constructor(auth) {
+  constructor(auth: WXAuth) {
     this.auth = auth
   }
 
@@ -226,7 +226,16 @@ export class WXAuth {
     sid,
     deviceId,
     cookies,
-   }) {
+  }: {
+      version: string
+      uin: number
+      skey: string
+      sid: string
+      deviceId: string
+      cookies: {
+        [key: string]: string
+      }
+    }) {
     this.version = version
     this.uin = uin
     this.skey = skey
@@ -353,7 +362,9 @@ export class WXAuth {
     })
     const html = response.body
     return {
-      cookies: reduce(response.headers['set-cookie'], (cookies, cookie: string) => {
+      cookies: reduce(response.headers['set-cookie'], (cookies: {
+        [key: string]: string
+      }, cookie: string) => {
         const str = cookie.split(';')[0]
         const index = str.indexOf('=')
         const key = str.substr(0, index)
