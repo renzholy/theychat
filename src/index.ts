@@ -69,11 +69,10 @@ if (opts.completion) {
   while (true) {
     try {
       await api.init(force)
-      await api.onIncomingMessage((msg, communicators) => {
-        const speaker = msg.content.match(/^(@\w+):<br\/>/)
+      await api.onIncomingMessage((msg) => {
         notify({
-          title: `${communicators.get(msg.from).name} -> ${communicators.get(msg.to).name}`,
-          message: speaker ? msg.content.replace(/@\w+/, communicators.get(speaker[1]).name) : msg.content,
+          title: msg.user.name,
+          message: msg.content,
         })
       })
       force = true

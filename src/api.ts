@@ -1,8 +1,9 @@
-import { chunk } from 'lodash'
+import { chunk, filter } from 'lodash'
 import * as Configstore from 'configstore'
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
-import { Communicator, Communicators, IncomingMessage } from './model'
+import { AbstractContact, ContactFactroy } from './models/Contact'
+import { AbstractIncomingMessage, IncomingMessageFactory } from './models/IncomingMessage'
 const pkg = require('../../package.json')
 
 export class API {
@@ -10,9 +11,11 @@ export class API {
     globalConfigPath: true,
   })
   private wxapi: WXAPI
-  private communicators = new Communicators()
+  private contacts: {
+    [key: string]: AbstractContact
+  } = {}
 
-  async init(force: boolean) {
+  public async init(force: boolean) {
     if (this.conf.has('auth') && !force) {
       this.wxapi = new WXAPI(new WXAuth(this.conf.get('auth')))
     } else {
@@ -29,19 +32,23 @@ export class API {
     }
   }
 
-  async onIncomingMessage(cb: (msg: IncomingMessage, communicators: Communicators) => void) {
+  public async onIncomingMessage(callback: (msg: AbstractIncomingMessage) => void) {
     await this.wxapi.webwxinit()
     await this.wxapi.webwxstatusnotify()
     for (let contact of (await this.wxapi.webwxgetcontact()).MemberList) {
-      this.communicators.add(new Communicator(contact))
-    }
-    const groups = this.communicators.allGroups().map(communicator => communicator.id)
-    for (let group of (await this.wxapi.webwxbatchgetcontact(groups)).ContactList) {
-      const c = new Communicator(group)
+      const c = ContactFactroy.create(contact)
       console.debug(c.id, c.name)
-      this.communicators.add(c)
+      this.contacts[c.id] = c
+    }
+    const groups = filter(this.contacts, contact => ContactFactroy.isGroupContact(contact))
+    for (let group of (await this.wxapi.webwxbatchgetcontact(groups.map(contact => contact.id))).ContactList) {
+      const c = ContactFactroy.create(group)
+      console.debug(c.id, c.name)
+      this.contacts[c.id] = c
       for (let member of group.MemberList) {
-        this.communicators.add(new Communicator(member))
+        const c = ContactFactroy.create(member)
+        console.debug(c.id, c.name)
+        this.contacts[c.id] = c
       }
     }
     while (true) {
@@ -53,17 +60,19 @@ export class API {
           if (msg.MsgType === 51) {
             for (let ids of chunk(msg.StatusNotifyUserName.split(','), 50)) {
               for (let group of (await this.wxapi.webwxbatchgetcontact(ids)).ContactList) {
-                const c = new Communicator(group)
+                const c = ContactFactroy.create(group)
                 console.debug(c.id, c.name)
-                this.communicators.add(c)
+                this.contacts[c.id] = c
                 for (let member of group.MemberList) {
-                  this.communicators.add(new Communicator(member))
+                  const c = ContactFactroy.create(member)
+                  console.debug(c.id, c.name)
+                  this.contacts[c.id] = c
                 }
               }
             }
           } else {
             console.debug(msg)
-            await cb(new IncomingMessage(msg), this.communicators)
+            await callback(IncomingMessageFactory.create(msg, this.contacts[msg.FromUserName]))
           }
         }
       }
