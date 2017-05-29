@@ -1,4 +1,4 @@
-import { init, watch, getCommunicator } from './api'
+import { init, watch, communicators } from './api'
 import { notify } from 'node-notifier'
 
 export default async function (args: string[]) {
@@ -10,7 +10,7 @@ export default async function (args: string[]) {
       }
       case 'watch': {
         await watch((msg) => {
-          const from = getCommunicator(msg.from)
+          const from = communicators.get(msg.from)
           notify({
             title: from.name,
             message: msg.content,

@@ -1,3 +1,4 @@
+import { filter } from 'lodash'
 import { Contact, AddMsg } from './type'
 
 export class Communicator {
@@ -40,5 +41,23 @@ export class IncomingMessage {
 
   get from(): string {
     return this.addMsg.FromUserName
+  }
+}
+
+export class Communicators {
+  private communicators: {
+    [key: string]: Communicator
+  } = {}
+
+  get(id: string): Communicator {
+    return this.communicators[id] || Communicator.stranger(id)
+  }
+
+  add(communicator: Communicator) {
+    this.communicators[communicator.id] = communicator
+  }
+
+  allGroups(): Communicator[] {
+    return filter(this.communicators, communicator => communicator.isGroup)
   }
 }

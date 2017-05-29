@@ -1,8 +1,7 @@
 import * as Configstore from 'configstore'
-import { filter } from 'lodash'
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
-import { Communicator, IncomingMessage } from './model'
+import { Communicator, Communicators, IncomingMessage } from './model'
 const pkg = require('../../package.json')
 
 const conf = new Configstore(pkg.name, null, {
@@ -15,9 +14,7 @@ if (conf.has('auth')) {
   api = new WXAPI(new WXAuth(conf.get('auth')))
 }
 
-const communicators: {
-  [key: string]: Communicator
-} = {}
+export const communicators = new Communicators()
 
 export async function init() {
   const { uuid, scan } = await WXAuth.uuid(conf.get('auth.cookies'))
@@ -36,11 +33,11 @@ export async function watch(cb: (msg: IncomingMessage) => void) {
   await api.webwxinit()
   await api.webwxstatusnotify()
   for (let contact of (await api.webwxgetcontact()).MemberList) {
-    communicators[contact.UserName] = new Communicator(contact)
+    communicators.add(new Communicator(contact))
   }
-  const groups = filter(communicators, communicator => communicator.isGroup).map(communicator => communicator.contact)
+  const groups = communicators.allGroups().map(communicator => communicator.contact)
   for (let contact of (await api.webwxbatchgetcontact(groups)).ContactList) {
-    communicators[contact.UserName] = new Communicator(contact)
+    communicators.add(new Communicator(contact))
   }
   while (true) {
     const { retcode, selector } = await api.synccheck()
@@ -57,8 +54,4 @@ export async function watch(cb: (msg: IncomingMessage) => void) {
       break
     }
   }
-}
-
-export function getCommunicator(username: string): Communicator {
-  return communicators[username] || Communicator.stranger(username)
 }
