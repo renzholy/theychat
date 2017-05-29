@@ -407,4 +407,24 @@ export class WXAuth {
       deviceid: this.deviceId,
     }
   }
+
+  public toJSON(): {
+    version: string
+    uin: number
+    skey: string
+    sid: string
+    deviceId: string
+    cookies: {
+      [key: string]: string
+    }
+  } {
+    return {
+      version: this.version,
+      uin: this.uin,
+      skey: this.skey,
+      sid: this.sid,
+      deviceId: this.deviceId,
+      cookies: this.cookies,
+    }
+  }
 }

@@ -6,7 +6,7 @@ import { readFile } from 'fs'
 import { resolve } from 'path'
 const pkg = require('../../package.json')
 
-import commands from './commands'
+import command from './command'
 
 const options = [
   {
@@ -49,7 +49,7 @@ if (opts.verbose) {
 
 console.debug("opts:", opts)
 
-commands(opts._args)
+command(opts._args)
 
 if (opts.version) {
   console.log(pkg.version)
