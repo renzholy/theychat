@@ -1,5 +1,6 @@
 import { filter } from 'lodash'
 import { Contact, Member, AddMsg } from './type'
+import { replaceEmoji } from './utils'
 
 export class Communicator {
   private contact: Contact | Member
@@ -13,10 +14,10 @@ export class Communicator {
   }
 
   get name(): string {
-    return (<Contact>this.contact).RemarkName
+    return replaceEmoji((<Contact>this.contact).RemarkName
       || this.contact.NickName
       || this.contact.DisplayName
-      || this.contact.UserName
+      || this.contact.UserName)
   }
 
   get isGroup(): boolean {
