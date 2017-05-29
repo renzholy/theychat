@@ -88,7 +88,7 @@ export class WXAPI {
     return json
   }
 
-  public async webwxbatchgetcontact(contacts: Contact[]): Promise<{
+  public async webwxbatchgetcontact(contacts: string[]): Promise<{
     BaseResponse: BaseResponse,
     ContactList: Contact[],
     Count: number,
@@ -105,7 +105,7 @@ export class WXAPI {
         Count: contacts.length,
         List: map(contacts, contact => ({
           EncryChatRoomId: '',
-          UserName: contact.UserName,
+          UserName: contact,
         })),
       },
     })
@@ -206,6 +206,10 @@ export class WXAPI {
   }
 
   public async webwxgetvoice() {
+  }
+
+  public async webwxrequest(options: Options) {
+    return await this.request(options)
   }
 }
 

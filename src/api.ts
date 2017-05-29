@@ -35,9 +35,11 @@ export async function watch(cb: (msg: IncomingMessage) => void) {
   for (let contact of (await api.webwxgetcontact()).MemberList) {
     communicators.add(new Communicator(contact))
   }
-  const groups = communicators.allGroups().map(communicator => communicator.contact)
+  const groups = communicators.allGroups().map(communicator => communicator.id)
   for (let contact of (await api.webwxbatchgetcontact(groups)).ContactList) {
-    communicators.add(new Communicator(contact))
+    for (let member of contact.MemberList) {
+      communicators.add(new Communicator(member))
+    }
   }
   while (true) {
     const { retcode, selector } = await api.synccheck()

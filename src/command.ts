@@ -10,9 +10,8 @@ export default async function (args: string[]) {
       }
       case 'watch': {
         await watch((msg) => {
-          const from = communicators.get(msg.from)
           notify({
-            title: from.name,
+            title: `${communicators.get(msg.from).name} -> ${communicators.get(msg.to).name}`,
             message: msg.content,
           })
         })

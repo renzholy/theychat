@@ -25,7 +25,6 @@
   },
   "homepage": "https://github.com/RenzHoly/theychat#readme",
   "dependencies": {
-    "cli-table2": "^0.2.0",
     "configstore": "^3.1.0",
     "emojis-list": "^2.1.0",
     "ioredis": "^2.5.0",
@@ -35,8 +34,7 @@
     "qrcode-terminal": "^0.11.0",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.3",
-    "source-map-support": "^0.4.15",
-    "yargs": "^8.0.1"
+    "source-map-support": "^0.4.15"
   },
   "devDependencies": {
     "@types/configstore": "^2.1.1",
@@ -44,7 +42,6 @@
     "@types/lodash": "^4.14.64",
     "@types/node-notifier": "0.0.28",
     "@types/request-promise-native": "^1.0.2",
-    "@types/yargs": "^6.6.0",
     "ava": "^0.19.1",
     "dashdash": "^1.14.1",
     "nodemon": "^1.11.0",

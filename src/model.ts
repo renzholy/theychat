@@ -1,10 +1,10 @@
 import { filter } from 'lodash'
-import { Contact, AddMsg } from './type'
+import { Contact, Member, AddMsg } from './type'
 
 export class Communicator {
-  public contact: Contact
+  private contact: Contact | Member
 
-  constructor(contact: Contact) {
+  constructor(contact: Contact | Member) {
     this.contact = contact
   }
 
@@ -13,7 +13,10 @@ export class Communicator {
   }
 
   get name(): string {
-    return this.contact.RemarkName || this.contact.NickName || this.contact.DisplayName || this.contact.UserName
+    return (<Contact>this.contact).RemarkName
+      || this.contact.NickName
+      || this.contact.DisplayName
+      || this.contact.UserName
   }
 
   get isGroup(): boolean {
@@ -29,7 +32,7 @@ export class Communicator {
 }
 
 export class IncomingMessage {
-  public addMsg: AddMsg
+  private addMsg: AddMsg
 
   constructor(addMsg: AddMsg) {
     this.addMsg = addMsg
@@ -41,6 +44,10 @@ export class IncomingMessage {
 
   get from(): string {
     return this.addMsg.FromUserName
+  }
+
+  get to(): string {
+    return this.addMsg.ToUserName
   }
 }
 
