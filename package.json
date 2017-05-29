@@ -7,8 +7,8 @@
   "scripts": {
     "start": "node ./dist/src/index.js",
     "build": "rm -rf ./dist && tsc -d",
-    "dev": "NODE_ENV=dev && tsc -w & nodemon ./dist/src/index.js",
-    "test": "NODE_ENV=dev && rm -rf ./dist && xo && tsc && ava -s ./dist/test/*",
+    "dev": "tsc -w & NODE_ENV=dev nodemon ./dist/src/index.js",
+    "test": "rm -rf ./dist && xo && tsc && NODE_ENV=dev ava -s ./dist/test/*",
     "lint": "xo"
   },
   "bin": {

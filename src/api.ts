@@ -1,3 +1,4 @@
+import { chunk } from 'lodash'
 import * as Configstore from 'configstore'
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
@@ -36,8 +37,11 @@ export async function watch(cb: (msg: IncomingMessage) => void) {
     communicators.add(new Communicator(contact))
   }
   const groups = communicators.allGroups().map(communicator => communicator.id)
-  for (let contact of (await api.webwxbatchgetcontact(groups)).ContactList) {
-    for (let member of contact.MemberList) {
+  for (let group of (await api.webwxbatchgetcontact(groups)).ContactList) {
+    const c = new Communicator(group)
+    console.debug(c.id, c.name)
+    communicators.add(c)
+    for (let member of group.MemberList) {
       communicators.add(new Communicator(member))
     }
   }
@@ -47,8 +51,21 @@ export async function watch(cb: (msg: IncomingMessage) => void) {
     if (retcode === 0 && selector !== 0) {
       const { AddMsgList } = await api.webwxsync()
       for (let msg of AddMsgList) {
-        console.debug(msg)
-        await cb(new IncomingMessage(msg))
+        if (msg.MsgType === 51) {
+          for (let ids of chunk(msg.StatusNotifyUserName.split(','), 50)) {
+            for (let group of (await api.webwxbatchgetcontact(ids)).ContactList) {
+              const c = new Communicator(group)
+              console.debug(c.id, c.name)
+              communicators.add(c)
+              for (let member of group.MemberList) {
+                communicators.add(new Communicator(member))
+              }
+            }
+          }
+        } else {
+          console.debug(msg)
+          await cb(new IncomingMessage(msg))
+        }
       }
     }
     if (retcode === 1101) {

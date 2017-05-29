@@ -41,7 +41,7 @@ try {
   process.exit(1)
 }
 
-if (opts.verbose) {
+if (opts.verbose || process.env.NODE_ENV === 'dev') {
   console.debug = console.log
 } else {
   console.debug = () => null
