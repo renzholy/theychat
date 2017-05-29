@@ -47,7 +47,7 @@ if (opts.verbose) {
   console.debug = () => null
 }
 
-console.debug("opts:", opts)
+console.debug('opts:', opts)
 
 command(opts._args)
 
