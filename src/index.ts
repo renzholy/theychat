@@ -4,9 +4,10 @@ import 'source-map-support/register'
 import { createParser } from 'dashdash'
 import { readFile } from 'fs'
 import { resolve } from 'path'
-const pkg = require('../../package.json')
+import { API } from './api'
+import { notify } from 'node-notifier'
 
-import command from './command'
+const pkg = require('../../package.json')
 
 const options = [
   {
@@ -49,8 +50,6 @@ if (opts.verbose || process.env.NODE_ENV === 'dev') {
 
 console.debug('opts:', opts)
 
-command(opts._args)
-
 if (opts.version) {
   console.log(pkg.version)
 }
@@ -63,3 +62,24 @@ if (opts.help) {
 if (opts.completion) {
   console.log(parser.bashCompletion({ name: pkg.name }))
 }
+
+(async function () {
+  const api = new API()
+  let force = false
+  while (true) {
+    try {
+      await api.init(force)
+      await api.onIncomingMessage((msg, communicators) => {
+        const speaker = msg.content.match(/^(@\w+):<br\/>/)
+        notify({
+          title: `${communicators.get(msg.from).name} -> ${communicators.get(msg.to).name}`,
+          message: speaker ? msg.content.replace(/@\w+/, communicators.get(speaker[1]).name) : msg.content,
+        })
+      })
+      force = true
+    } catch (err) {
+      console.log('restarting')
+      console.error(err.message)
+    }
+  }
+})()
