@@ -238,7 +238,7 @@ export class WXAuth {
   public static async uuid(cookies?: {
     [key: string]: string
   }): Promise<{
-    uuid?: string
+    uuid: string
     scan: boolean
   }> {
     let redirectUri
@@ -260,9 +260,7 @@ export class WXAuth {
         }
       }
     }
-    return {
-      scan: false,
-    }
+    throw new Error('get uuid failed')
   }
 
   public static async login(uuid: string): Promise<WXAuth> {
@@ -281,7 +279,7 @@ export class WXAuth {
 
   private static async jsLogin(): Promise<{
     code: number
-    uuid?: string
+    uuid: string
   }> {
     const html = await request({
       method: 'POST',

@@ -6,7 +6,7 @@
     "module": "commonjs",
     "sourceMap": true,
     "target": "es6",
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "typeRoots": [
       "node_modules/@types"
     ]

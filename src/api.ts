@@ -2,7 +2,7 @@ import * as Configstore from 'configstore'
 import { filter } from 'lodash'
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
-import { Contact, AddMsg } from './type'
+import { Communicator, IncomingMessage } from './model'
 const pkg = require('../../package.json')
 
 const conf = new Configstore(pkg.name, null, {
@@ -15,8 +15,8 @@ if (conf.has('auth')) {
   api = new WXAPI(new WXAuth(conf.get('auth')))
 }
 
-const contacts: {
-  [key: string]: Contact
+const communicators: {
+  [key: string]: Communicator
 } = {}
 
 export async function init() {
@@ -32,14 +32,15 @@ export async function init() {
   api = new WXAPI(auth)
 }
 
-export async function watch(cb: (msg: AddMsg) => void) {
+export async function watch(cb: (msg: IncomingMessage) => void) {
   await api.webwxinit()
   await api.webwxstatusnotify()
   for (let contact of (await api.webwxgetcontact()).MemberList) {
-    contacts[contact.UserName] = contact
+    communicators[contact.UserName] = new Communicator(contact)
   }
-  for (let contact of (await api.webwxbatchgetcontact(filter(contacts, contact => contact.UserName.startsWith('@@')))).ContactList) {
-    contacts[contact.UserName] = contact
+  const groups = filter(communicators, communicator => communicator.isGroup).map(communicator => communicator.contact)
+  for (let contact of (await api.webwxbatchgetcontact(groups)).ContactList) {
+    communicators[contact.UserName] = new Communicator(contact)
   }
   while (true) {
     const { retcode, selector } = await api.synccheck()
@@ -48,7 +49,7 @@ export async function watch(cb: (msg: AddMsg) => void) {
       const { AddMsgList } = await api.webwxsync()
       for (let msg of AddMsgList) {
         console.debug(msg)
-        await cb(msg)
+        await cb(new IncomingMessage(msg))
       }
     }
     if (retcode === 1101) {
@@ -58,6 +59,6 @@ export async function watch(cb: (msg: AddMsg) => void) {
   }
 }
 
-export function getContact(username: string): Contact | null {
-  return contacts[username] || null
+export function getCommunicator(username: string): Communicator {
+  return communicators[username] || Communicator.stranger(username)
 }
