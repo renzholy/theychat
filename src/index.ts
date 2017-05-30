@@ -5,33 +5,9 @@ import { readFile } from 'fs'
 import { resolve } from 'path'
 
 import { API } from './api'
+const pkg = require(resolve('./package.json'))
 
-const pkg = require('../../package.json')
-
-const options = [
-  {
-    name: 'version',
-    type: 'bool',
-    help: 'Print tool version and exit.'
-  },
-  {
-    names: ['help', 'h'],
-    type: 'bool',
-    help: 'Print this help and exit.'
-  },
-  {
-    names: ['verbose', 'v'],
-    type: 'bool',
-    help: 'Verbose output. Use multiple times for more verbose.'
-  },
-  {
-    names: ['completion'],
-    type: 'bool',
-    help: 'Generate bash completion file'
-  }
-]
-
-const api = new API()
+const api = new API(pkg.name)
 
 if (process.env.NODE_ENV === 'dev') {
   console.debug = console.log
@@ -49,7 +25,6 @@ if (process.env.NODE_ENV === 'dev') {
       })
       force = true
     } catch (err) {
-      console.log('restarting')
       console.error(err.message)
     }
   }

@@ -6,17 +6,20 @@ import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
 import { Contact, ContactFactroy } from './models/Contact'
 import { Message, MessageFactory } from './models/Message'
-const pkg = require('../../package.json')
 
 export class API {
-  private conf = new Configstore(pkg.name, null, {
-    globalConfigPath: true,
-  })
+  private conf
   private wxapi: WXAPI
   private contacts: {
     [key: string]: Contact
   } = {}
   private recent = LRU<Contact>(20)
+
+  constructor(name: string) {
+    this.conf = new Configstore(name, null, {
+      globalConfigPath: true,
+    })
+  }
 
   public async init(force: boolean) {
     if (this.conf.has('auth') && !force) {
