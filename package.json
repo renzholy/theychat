@@ -8,8 +8,7 @@
     "start": "node ./dist/src/index.js",
     "build": "rm -rf ./dist && tsc -d",
     "dev": "tsc -w & NODE_ENV=dev nodemon ./dist/src/index.js",
-    "test": "rm -rf ./dist && xo && tsc && NODE_ENV=dev ava -s ./dist/test/*",
-    "lint": "xo"
+    "test": "rm -rf ./dist && tsc && NODE_ENV=dev ava -s ./dist/test/*"
   },
   "bin": {
     "theychat": "./dist/src/index.js"
@@ -27,7 +26,6 @@
   "dependencies": {
     "configstore": "^3.1.0",
     "emojis-list": "^2.1.0",
-    "ioredis": "^2.5.0",
     "lodash": "^4.17.4",
     "node-notifier": "^5.1.2",
     "punycode": "^2.1.0",
@@ -38,17 +36,12 @@
   },
   "devDependencies": {
     "@types/configstore": "^2.1.1",
-    "@types/ioredis": "0.0.23",
     "@types/lodash": "^4.14.64",
     "@types/node-notifier": "0.0.28",
     "@types/request-promise-native": "^1.0.2",
     "ava": "^0.19.1",
     "dashdash": "^1.14.1",
     "nodemon": "^1.11.0",
-    "typescript": "^2.2.2",
-    "xo": "^0.18.2"
-  },
-  "xo": {
-    "space": 2
+    "typescript": "^2.2.2"
   }
 }
