@@ -71,7 +71,7 @@ if (opts.completion) {
       await api.init(force)
       await api.onIncomingMessage((msg) => {
         notify({
-          title: msg.user.name,
+          title: msg.from.name,
           message: msg.content,
         })
       })

@@ -15,13 +15,27 @@ export abstract class AbstractMessage {
     this.contacts = contacts
   }
 
-  get user(): Contact {
+  get id(): string {
+    return this.addMsg.MsgId
+  }
+
+  get from(): Contact {
     return this.contacts[this.addMsg.FromUserName]
   }
 
-  get content(): string {
+  get to(): Contact {
+    return this.contacts[this.addMsg.ToUserName]
+  }
+
+  get speaker(): Contact | null {
     const speaker = this.addMsg.Content.match(/^(@\w+):<br\/>/)
-    return speaker ? this.addMsg.Content.replace(/@\w+/, this.contacts[speaker[1]].name) : this.addMsg.Content
+    return speaker && this.contacts[speaker[1]]
+  }
+
+  abstract get text(): string
+
+  get content(): string {
+    return this.speaker ? `${this.speaker.name}: ${this.text}` : this.text
   }
 
   get raw(): AddMsg {
@@ -31,17 +45,37 @@ export abstract class AbstractMessage {
 
 export class TextMessage extends AbstractMessage {
   public type: 'TEXT'
+
+  get text(): string {
+    return this.addMsg.Content.replace(/^(@\w+):<br\/>/, '')
+  }
+}
+
+export class PictureMessage extends AbstractMessage {
+  public type: 'PICTURE'
+
+  get text(): string {
+    return '[发来一张图片]'
+  }
+}
+
+export class VoiceMessage extends AbstractMessage {
+  public type: 'VOICE'
+
+  get text(): string {
+    return '[发来一条语音]'
+  }
 }
 
 export class UnknownMessage extends AbstractMessage {
   public type: 'UNKNOWN'
 
-  get content(): string {
-    return super.content + '[未知类型消息]'
+  get text(): string {
+    return '[未知类型消息]'
   }
 }
 
-export type Message = TextMessage | UnknownMessage
+export type Message = TextMessage | PictureMessage | VoiceMessage | UnknownMessage
 
 export class MessageFactory {
   public static create(addMsg: AddMsg, contacts: {
@@ -50,6 +84,12 @@ export class MessageFactory {
     switch (addMsg.MsgType) {
       case 1: {
         return new TextMessage(addMsg, contacts)
+      }
+      case 3: {
+        return new PictureMessage(addMsg, contacts)
+      }
+      case 34: {
+        return new VoiceMessage(addMsg, contacts)
       }
       default: {
         return new UnknownMessage(addMsg, contacts)
