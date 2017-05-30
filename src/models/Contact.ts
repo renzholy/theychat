@@ -2,15 +2,16 @@ import { ucs2 } from 'punycode'
 import { chunk } from 'lodash'
 import * as emojis from 'emojis-list'
 
-import { Contact, Member } from '../type'
+import { Contact as ContactType, Member } from '../type'
 
 export abstract class AbstractContact {
-  protected contact: Contact | Member
+  public abstract type: string
+  protected contact: ContactType | Member
   private static LRO = new RegExp(String.fromCharCode(parseInt('0x202D', 16)), 'g') // Left-to-Right Override
   private static RLO = new RegExp(String.fromCharCode(parseInt('0x202E', 16)), 'g') // Right-to-Left Override
   private static EOF = new RegExp(String.fromCharCode(parseInt('0xFE0F', 16)), 'g')
 
-  constructor(contact: Contact | Member) {
+  constructor(contact: ContactType | Member) {
     this.contact = contact
   }
 
@@ -40,38 +41,38 @@ export abstract class AbstractContact {
   }
 
   get name(): string {
-    return AbstractContact.replaceEmoji((<Contact>this.contact).RemarkName || this.contact.NickName)
+    return AbstractContact.replaceEmoji((<ContactType>this.contact).RemarkName || this.contact.NickName)
       || this.contact.DisplayName || this.contact.UserName
   }
-
-  abstract type: string
 }
 
 export class SpecialContact extends AbstractContact {
-  type: 'SPECIAL'
+  public type: 'SPECIAL'
 }
 
 export class GroupContact extends AbstractContact {
-  type: 'GROUP'
+  public type: 'GROUP'
 }
 
 export class OfficialContact extends AbstractContact {
-  type: 'OFFICIAL'
+  public type: 'OFFICIAL'
 }
 
 export class PersonalContact extends AbstractContact {
-  type: 'PERSONAL'
+  public type: 'PERSONAL'
 }
 
+export type Contact = SpecialContact | GroupContact | OfficialContact | PersonalContact
+
 export class ContactFactroy {
-  public static create(contact: Contact | Member): AbstractContact {
+  public static create(contact: ContactType | Member): Contact {
     if (!contact.UserName.startsWith('@')) {
       return new SpecialContact(contact)
     }
     if (contact.UserName.startsWith('@@')) {
       return new GroupContact(contact)
     }
-    if ((<Contact>contact).VerifyFlag && ((<Contact>contact).VerifyFlag & 8) !== 0) {
+    if ((<ContactType>contact).VerifyFlag && ((<ContactType>contact).VerifyFlag & 8) !== 0) {
       return new OfficialContact(contact)
     }
     return new PersonalContact(contact)

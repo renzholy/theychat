@@ -2,8 +2,8 @@ import { chunk, filter } from 'lodash'
 import * as Configstore from 'configstore'
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
-import { AbstractContact, ContactFactroy } from './models/Contact'
-import { AbstractIncomingMessage, IncomingMessageFactory } from './models/IncomingMessage'
+import { Contact, ContactFactroy } from './models/Contact'
+import { IncomingMessage, IncomingMessageFactory } from './models/IncomingMessage'
 const pkg = require('../../package.json')
 
 export class API {
@@ -12,7 +12,7 @@ export class API {
   })
   private wxapi: WXAPI
   private contacts: {
-    [key: string]: AbstractContact
+    [key: string]: Contact
   } = {}
 
   public async init(force: boolean) {
@@ -32,7 +32,7 @@ export class API {
     }
   }
 
-  public async onIncomingMessage(callback: (msg: AbstractIncomingMessage) => void) {
+  public async onIncomingMessage(callback: (msg: IncomingMessage) => void) {
     await this.wxapi.webwxinit()
     await this.wxapi.webwxstatusnotify()
     for (let contact of (await this.wxapi.webwxgetcontact()).MemberList) {
@@ -72,7 +72,7 @@ export class API {
             }
           } else {
             console.debug(msg)
-            await callback(IncomingMessageFactory.create(msg, this.contacts[msg.FromUserName]))
+            await callback(IncomingMessageFactory.create(msg, this.contacts)
           }
         }
       }

@@ -1,22 +1,27 @@
 import { AddMsg } from '../type'
-import { AbstractContact } from './Contact'
+import { Contact } from './Contact'
 
 export abstract class AbstractIncomingMessage {
+  public abstract type: string
   protected addMsg: AddMsg
-  protected contact: AbstractContact
-
-  constructor(addMsg: AddMsg, contact: AbstractContact) {
-    this.addMsg = addMsg
-    this.contact = contact
+  protected contacts: {
+    [key: string]: Contact
   }
 
-  get user(): AbstractContact {
-    return this.contact
+  constructor(addMsg: AddMsg, contacts: {
+    [key: string]: Contact
+  }) {
+    this.addMsg = addMsg
+    this.contacts = contacts
+  }
+
+  get user(): Contact {
+    return this.contacts[this.addMsg.FromUserName]
   }
 
   get content(): string {
     const speaker = this.addMsg.Content.match(/^(@\w+):<br\/>/)
-    return speaker ? this.addMsg.Content.replace(/@\w+/, this.contact.name) : this.addMsg.Content
+    return speaker ? this.addMsg.Content.replace(/@\w+/, this.contacts[speaker[1]].name) : this.addMsg.Content
   }
 
   get raw(): AddMsg {
@@ -25,25 +30,29 @@ export abstract class AbstractIncomingMessage {
 }
 
 export class TextIncomingMessage extends AbstractIncomingMessage {
-  get content(): string {
-    return this.addMsg.Content
-  }
+  public type: 'TEXT'
 }
 
 export class UnknownIncomingMessage extends AbstractIncomingMessage {
+  public type: 'UNKNOWN'
+
   get content(): string {
-    return '[未知类型消息]'
+    return super.content + '[未知类型消息]'
   }
 }
 
+export type IncomingMessage = TextIncomingMessage | UnknownIncomingMessage
+
 export class IncomingMessageFactory {
-  public static create(addMsg: AddMsg, contact: AbstractContact): AbstractIncomingMessage {
+  public static create(addMsg: AddMsg, contacts: {
+    [key: string]: Contact
+  }): IncomingMessage {
     switch (addMsg.MsgType) {
       case 1: {
-        return new TextIncomingMessage(addMsg, contact)
+        return new TextIncomingMessage(addMsg, contacts)
       }
       default: {
-        return new UnknownIncomingMessage(addMsg, contact)
+        return new UnknownIncomingMessage(addMsg, contacts)
       }
     }
   }
