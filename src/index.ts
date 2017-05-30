@@ -5,7 +5,6 @@ import { readFile } from 'fs'
 import { resolve } from 'path'
 
 import { API } from './api'
-import { notify } from 'node-notifier'
 
 const pkg = require('../../package.json')
 
@@ -46,10 +45,7 @@ if (process.env.NODE_ENV === 'dev') {
     try {
       await api.init(force)
       await api.onIncomingMessage((msg) => {
-        notify({
-          title: msg.from.name,
-          message: msg.content,
-        })
+        console.log(msg.from.name, msg.content)
       })
       force = true
     } catch (err) {
