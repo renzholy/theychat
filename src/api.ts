@@ -33,14 +33,12 @@ export class API {
   }
 
   private async batchGetContacts(userNames: string[]) {
-    for (let ids of chunk(userNames, 50)) {
-      for (let group of (await this.wxapi.webwxbatchgetcontact(ids)).ContactList) {
-        const c = ContactFactroy.create(group)
-        console.debug(c.id, c.name)
+    for (let userNames50 of chunk(userNames, 50)) {
+      for (let contact of (await this.wxapi.webwxbatchgetcontact(userNames50)).ContactList) {
+        const c = ContactFactroy.create(contact)
         this.contacts[c.id] = c
-        for (let member of group.MemberList) {
+        for (let member of contact.MemberList || []) {
           const c = ContactFactroy.create(member)
-          console.debug(c.id, c.name)
           this.contacts[c.id] = c
         }
       }
@@ -52,11 +50,10 @@ export class API {
     await this.wxapi.webwxstatusnotify()
     for (let contact of (await this.wxapi.webwxgetcontact()).MemberList) {
       const c = ContactFactroy.create(contact)
-      console.debug(c.id, c.name)
       this.contacts[c.id] = c
     }
     const groups = filter(this.contacts, contact => ContactFactroy.isGroupContact(contact))
-    this.batchGetContacts(groups.map(contact => contact.id))
+    await this.batchGetContacts(groups.map(contact => contact.id))
     while (true) {
       const { retcode, selector } = await this.wxapi.synccheck()
       console.debug(retcode, selector)
@@ -64,7 +61,7 @@ export class API {
         const { AddMsgList } = await this.wxapi.webwxsync()
         for (let msg of AddMsgList) {
           if (msg.MsgType === 51) {
-            this.batchGetContacts(msg.StatusNotifyUserName.split(','))
+            await this.batchGetContacts(msg.StatusNotifyUserName.split(','))
           } else {
             console.debug(msg)
             await callback(MessageFactory.create(msg, this.contacts))
