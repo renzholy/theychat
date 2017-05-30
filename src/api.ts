@@ -1,5 +1,7 @@
-import { chunk, filter } from 'lodash'
+import { chunk, filter, values } from 'lodash'
 import * as Configstore from 'configstore'
+import * as LRU from 'lru-cache'
+
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
 import { Contact, ContactFactroy } from './models/Contact'
@@ -14,6 +16,7 @@ export class API {
   private contacts: {
     [key: string]: Contact
   } = {}
+  private recent = LRU<Contact>(20)
 
   public async init(force: boolean) {
     if (this.conf.has('auth') && !force) {
@@ -64,6 +67,9 @@ export class API {
             await this.batchGetContacts(msg.StatusNotifyUserName.split(','))
           } else {
             console.debug(msg)
+            const c = this.contacts[msg.FromUserName]
+            this.recent.set(c.id, c)
+            this.recent.get(c.id)
             await callback(MessageFactory.create(msg, this.contacts))
           }
         }
@@ -73,5 +79,14 @@ export class API {
         break
       }
     }
+  }
+
+  list(keyword?: string): Contact[] {
+    if (keyword) {
+      return filter(this.contacts, contact => {
+        return contact.match(keyword)
+      })
+    }
+    return this.recent.values()
   }
 }

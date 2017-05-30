@@ -44,6 +44,11 @@ export abstract class AbstractContact {
     return AbstractContact.replaceEmoji((<ContactType>this.contact).RemarkName || this.contact.NickName)
       || this.contact.DisplayName || this.contact.UserName
   }
+
+  match(keyword: string): boolean {
+    return `${this.contact.PYInitial} ${this.contact.PYQuanPin}`.toLowerCase().indexOf(keyword.toLowerCase()) >= 0
+      || this.name.indexOf(keyword) >= 0
+  }
 }
 
 export class SpecialContact extends AbstractContact {
