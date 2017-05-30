@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import 'source-map-support/register'
-import { createParser } from 'dashdash'
 import { readFile } from 'fs'
 import { resolve } from 'path'
+
 import { API } from './api'
 import { notify } from 'node-notifier'
 
@@ -32,39 +32,15 @@ const options = [
   }
 ]
 
-const parser = createParser({ options })
+const api = new API()
 
-let opts: any = {}
-try {
-  opts = parser.parse(process.argv)
-} catch (e) {
-  console.error('error: %s', e.message)
-  process.exit(1)
-}
-
-if (opts.verbose || process.env.NODE_ENV === 'dev') {
+if (process.env.NODE_ENV === 'dev') {
   console.debug = console.log
 } else {
   console.debug = () => null
 }
 
-console.debug('opts:', opts)
-
-if (opts.version) {
-  console.log(pkg.version)
-}
-
-if (opts.help) {
-  const help = parser.help({ includeEnv: true }).trimRight()
-  console.log(`usage: ${pkg.name} [OPTIONS]\noptions:\n${help}`)
-}
-
-if (opts.completion) {
-  console.log(parser.bashCompletion({ name: pkg.name }))
-}
-
 (async function () {
-  const api = new API()
   let force = false
   while (true) {
     try {
