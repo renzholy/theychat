@@ -1,7 +1,7 @@
 import { AddMsg } from '../type'
 import { Contact } from './Contact'
 
-export abstract class AbstractIncomingMessage {
+export abstract class AbstractMessage {
   public abstract type: string
   protected addMsg: AddMsg
   protected contacts: {
@@ -29,11 +29,11 @@ export abstract class AbstractIncomingMessage {
   }
 }
 
-export class TextIncomingMessage extends AbstractIncomingMessage {
+export class TextMessage extends AbstractMessage {
   public type: 'TEXT'
 }
 
-export class UnknownIncomingMessage extends AbstractIncomingMessage {
+export class UnknownMessage extends AbstractMessage {
   public type: 'UNKNOWN'
 
   get content(): string {
@@ -41,18 +41,18 @@ export class UnknownIncomingMessage extends AbstractIncomingMessage {
   }
 }
 
-export type IncomingMessage = TextIncomingMessage | UnknownIncomingMessage
+export type Message = TextMessage | UnknownMessage
 
-export class IncomingMessageFactory {
+export class MessageFactory {
   public static create(addMsg: AddMsg, contacts: {
     [key: string]: Contact
-  }): IncomingMessage {
+  }): Message {
     switch (addMsg.MsgType) {
       case 1: {
-        return new TextIncomingMessage(addMsg, contacts)
+        return new TextMessage(addMsg, contacts)
       }
       default: {
-        return new UnknownIncomingMessage(addMsg, contacts)
+        return new UnknownMessage(addMsg, contacts)
       }
     }
   }

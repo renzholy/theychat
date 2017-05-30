@@ -3,7 +3,7 @@ import * as Configstore from 'configstore'
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
 import { Contact, ContactFactroy } from './models/Contact'
-import { IncomingMessage, IncomingMessageFactory } from './models/IncomingMessage'
+import { Message, MessageFactory } from './models/Message'
 const pkg = require('../../package.json')
 
 export class API {
@@ -32,7 +32,22 @@ export class API {
     }
   }
 
-  public async onIncomingMessage(callback: (msg: IncomingMessage) => void) {
+  private async batchGetContacts(userNames: string[]) {
+    for (let ids of chunk(userNames, 50)) {
+      for (let group of (await this.wxapi.webwxbatchgetcontact(ids)).ContactList) {
+        const c = ContactFactroy.create(group)
+        console.debug(c.id, c.name)
+        this.contacts[c.id] = c
+        for (let member of group.MemberList) {
+          const c = ContactFactroy.create(member)
+          console.debug(c.id, c.name)
+          this.contacts[c.id] = c
+        }
+      }
+    }
+  }
+
+  public async onIncomingMessage(callback: (msg: Message) => void) {
     await this.wxapi.webwxinit()
     await this.wxapi.webwxstatusnotify()
     for (let contact of (await this.wxapi.webwxgetcontact()).MemberList) {
@@ -41,16 +56,7 @@ export class API {
       this.contacts[c.id] = c
     }
     const groups = filter(this.contacts, contact => ContactFactroy.isGroupContact(contact))
-    for (let group of (await this.wxapi.webwxbatchgetcontact(groups.map(contact => contact.id))).ContactList) {
-      const c = ContactFactroy.create(group)
-      console.debug(c.id, c.name)
-      this.contacts[c.id] = c
-      for (let member of group.MemberList) {
-        const c = ContactFactroy.create(member)
-        console.debug(c.id, c.name)
-        this.contacts[c.id] = c
-      }
-    }
+    this.batchGetContacts(groups.map(contact => contact.id))
     while (true) {
       const { retcode, selector } = await this.wxapi.synccheck()
       console.debug(retcode, selector)
@@ -58,21 +64,10 @@ export class API {
         const { AddMsgList } = await this.wxapi.webwxsync()
         for (let msg of AddMsgList) {
           if (msg.MsgType === 51) {
-            for (let ids of chunk(msg.StatusNotifyUserName.split(','), 50)) {
-              for (let group of (await this.wxapi.webwxbatchgetcontact(ids)).ContactList) {
-                const c = ContactFactroy.create(group)
-                console.debug(c.id, c.name)
-                this.contacts[c.id] = c
-                for (let member of group.MemberList) {
-                  const c = ContactFactroy.create(member)
-                  console.debug(c.id, c.name)
-                  this.contacts[c.id] = c
-                }
-              }
-            }
+            this.batchGetContacts(msg.StatusNotifyUserName.split(','))
           } else {
             console.debug(msg)
-            await callback(IncomingMessageFactory.create(msg, this.contacts)
+            await callback(MessageFactory.create(msg, this.contacts))
           }
         }
       }
