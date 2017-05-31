@@ -35,3 +35,9 @@ export function replaceEmoji(str: string): string {
   })
   return text.replace(LRO, '').replace(RLO, '').replace(EOF, '')
 }
+
+export function sleep(milliseconds: number): Promise<void> {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, milliseconds)
+  })
+}

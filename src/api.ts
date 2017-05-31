@@ -1,6 +1,5 @@
 import { chunk, filter, values } from 'lodash'
 import * as Configstore from 'configstore'
-import * as LRU from 'lru-cache'
 
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
@@ -13,7 +12,6 @@ export class API {
   private contacts: {
     [key: string]: Contact
   } = {}
-  private recent = LRU<Contact>(20)
 
   constructor(name: string) {
     this.conf = new Configstore(name, null, {
@@ -21,7 +19,7 @@ export class API {
     })
   }
 
-  public async init(force: boolean) {
+  public async init(force: boolean): Promise<void> {
     if (this.conf.has('auth') && !force) {
       this.wxapi = new WXAPI(new WXAuth(this.conf.get('auth')))
     } else {
@@ -38,7 +36,7 @@ export class API {
     }
   }
 
-  private async batchGetContacts(userNames: string[]) {
+  private async batchGetContacts(userNames: string[]): Promise<void> {
     for (let userNames50 of chunk(userNames, 50)) {
       for (let contact of (await this.wxapi.webwxbatchgetcontact(userNames50)).ContactList) {
         const c = ContactFactroy.create(contact)
@@ -51,7 +49,7 @@ export class API {
     }
   }
 
-  public async onIncomingMessage(callback: (msg: Message) => void) {
+  public async onMessage(callback: (msg: Message) => void): Promise<void> {
     await this.wxapi.webwxinit()
     await this.wxapi.webwxstatusnotify()
     for (let contact of (await this.wxapi.webwxgetcontact()).MemberList) {
@@ -71,8 +69,6 @@ export class API {
           } else {
             console.debug(msg)
             const c = this.contacts[msg.FromUserName]
-            this.recent.set(c.id, c)
-            this.recent.get(c.id)
             await callback(MessageFactory.create(msg, this.contacts))
           }
         }
@@ -82,14 +78,5 @@ export class API {
         break
       }
     }
-  }
-
-  list(keyword?: string): Contact[] {
-    if (keyword) {
-      return filter(this.contacts, contact => {
-        return contact.match(keyword)
-      })
-    }
-    return this.recent.values()
   }
 }

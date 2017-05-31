@@ -20,7 +20,7 @@ if (process.env.NODE_ENV === 'dev') {
   while (true) {
     try {
       await api.init(force)
-      await api.onIncomingMessage((msg) => {
+      await api.onMessage((msg) => {
         console.log(msg.from.name, msg.content)
       })
       force = true
