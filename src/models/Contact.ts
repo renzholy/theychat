@@ -2,14 +2,14 @@ import { ucs2 } from 'punycode'
 import { chunk } from 'lodash'
 import * as emojis from 'emojis-list'
 
-import { Contact as ContactType, Member } from '../type'
+import { Contact as ContactType, Member, User } from '../type'
 import { replaceEmoji } from '../utils'
 
 export abstract class AbstractContact {
   public abstract type: string
-  protected contact: ContactType | Member
+  protected contact: ContactType | Member | User
 
-  constructor(contact: ContactType | Member) {
+  constructor(contact: ContactType | Member | User) {
     this.contact = contact
   }
 
@@ -19,7 +19,7 @@ export abstract class AbstractContact {
 
   get name(): string {
     return replaceEmoji((<ContactType>this.contact).RemarkName || this.contact.NickName)
-      || this.contact.DisplayName || this.contact.UserName
+      || (<ContactType | Member>this.contact).DisplayName || this.contact.UserName
   }
 
   match(keyword: string): boolean {
@@ -47,7 +47,7 @@ export class PersonalContact extends AbstractContact {
 export type Contact = SpecialContact | GroupContact | OfficialContact | PersonalContact
 
 export class ContactFactroy {
-  public static create(contact: ContactType | Member): Contact {
+  public static create(contact: ContactType | Member | User): Contact {
     if (!contact.UserName.startsWith('@')) {
       return new SpecialContact(contact)
     }

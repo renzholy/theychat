@@ -6,7 +6,7 @@
   "types": "dist/src/index.d.js",
   "scripts": {
     "start": "node ./dist/src/index.js",
-    "build": "rm -rf ./dist && tsc -d",
+    "build": "rm -rf ./dist && tsc",
     "dev": "tsc -w & NODE_ENV=dev nodemon ./dist/src/index.js",
     "test": "rm -rf ./dist && tsc && NODE_ENV=dev ava -s ./dist/test/*"
   },

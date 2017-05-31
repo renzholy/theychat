@@ -19,20 +19,36 @@ export class API {
     })
   }
 
-  public async init(force: boolean): Promise<void> {
-    if (this.conf.has('auth') && !force) {
-      this.wxapi = new WXAPI(new WXAuth(this.conf.get('auth')))
-    } else {
-      const { uuid, scan } = await WXAuth.uuid(this.conf.get('auth.cookies'))
-      if (scan) {
-        console.log(`https://login.weixin.qq.com/qrcode/${uuid}`)
-        console.log(await qrcode(`https://login.weixin.qq.com/l/${uuid}`, true))
-      } else {
-        console.log('push login')
+  private async login(method: 'AUTO' | 'PUSH' | 'SCAN' = 'AUTO'): Promise<WXAuth> {
+    console.debug(method)
+    switch (method) {
+      case 'AUTO': {
+        if (this.conf.has('auth.cookies') && Date.now() / 1000 - parseInt(this.conf.get('auth.cookies.wxloadtime')) < 600) {
+          return await new WXAuth(this.conf.get('auth'))
+        } else {
+          return await this.login('PUSH')
+        }
       }
-      const auth = await WXAuth.login(uuid)
-      this.conf.set('auth', auth.toJSON())
-      this.wxapi = new WXAPI(auth)
+      case 'PUSH': {
+        if (!this.conf.get('auth.cookies')) {
+          return await this.login('SCAN')
+        }
+        const uuid = await WXAuth.uuid(this.conf.get('auth.cookies'))
+        if (uuid) {
+          return await WXAuth.login(uuid)
+        } else {
+          return await this.login('SCAN')
+        }
+      }
+      case 'SCAN': {
+        const uuid = await WXAuth.uuid()
+        if (uuid) {
+          console.log(`https://login.weixin.qq.com/qrcode/${uuid}`)
+          console.log(await qrcode(`https://login.weixin.qq.com/l/${uuid}`, true))
+          return await WXAuth.login(uuid)
+        }
+        throw new Error('can\'t login')
+      }
     }
   }
 
@@ -49,8 +65,16 @@ export class API {
     }
   }
 
-  public async onMessage(callback: (msg: Message) => void): Promise<void> {
-    await this.wxapi.webwxinit()
+  public async init(): Promise<void> {
+    // login
+    const auth = await this.login()
+    this.conf.set('auth', auth.toJSON())
+    this.wxapi = new WXAPI(auth)
+
+    // get contacts    
+    const u = (await this.wxapi.webwxinit()).User
+    const c = ContactFactroy.create(u)
+    this.contacts[c.id] = c
     await this.wxapi.webwxstatusnotify()
     for (let contact of (await this.wxapi.webwxgetcontact()).MemberList) {
       const c = ContactFactroy.create(contact)
@@ -58,23 +82,30 @@ export class API {
     }
     const groups = filter(this.contacts, contact => ContactFactroy.isGroupContact(contact))
     await this.batchGetContacts(groups.map(contact => contact.id))
+
+    const { AddMsgList } = await this.wxapi.webwxsync()
+    if (AddMsgList[0] && AddMsgList[0].MsgType === 51) {
+      await this.batchGetContacts(AddMsgList[0].StatusNotifyUserName.split(','))
+    } else {
+      console.warn('init contacts error')
+    }
+    console.log('init succeed')
+  }
+
+  public async onMessage(callback: (msg: Message) => void): Promise<void> {
     while (true) {
       const { retcode, selector } = await this.wxapi.synccheck()
       console.debug(retcode, selector)
       if (retcode === 0 && selector !== 0) {
         const { AddMsgList } = await this.wxapi.webwxsync()
         for (let msg of AddMsgList) {
-          if (msg.MsgType === 51) {
-            await this.batchGetContacts(msg.StatusNotifyUserName.split(','))
-          } else {
-            console.debug(msg)
-            const c = this.contacts[msg.FromUserName]
-            await callback(MessageFactory.create(msg, this.contacts))
-          }
+          console.debug(msg)
+          const c = this.contacts[msg.FromUserName]
+          await callback(MessageFactory.create(msg, this.contacts))
         }
       }
       if (retcode === 1101) {
-        console.error('login required')
+        console.error('init required')
         break
       }
     }

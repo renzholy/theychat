@@ -16,16 +16,12 @@ if (process.env.NODE_ENV === 'dev') {
 }
 
 (async function () {
-  let force = false
-  while (true) {
-    try {
-      await api.init(force)
-      await api.onMessage((msg) => {
-        console.log(msg.from.name, msg.content)
-      })
-      force = true
-    } catch (err) {
-      console.error(err.message)
-    }
+  try {
+    await api.init()
+    await api.onMessage((msg) => {
+      console.log(msg.from.name, msg.content)
+    })
+  } catch (err) {
+    console.error(err.message)
   }
 })()

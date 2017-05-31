@@ -241,30 +241,21 @@ export class WXAuth {
 
   public static async uuid(cookies?: {
     [key: string]: string
-  }): Promise<{
-    uuid: string
-    scan: boolean
-  }> {
+  }): Promise<string | null> {
     let redirectUri
     let version
     if (cookies) {
       const { uuid, ret } = await WXAuth.pushLogin(cookies)
       if (ret === '0') {
-        return {
-          scan: false,
-          uuid,
-        }
+        return uuid
       }
     } else {
       const { uuid, code } = await WXAuth.jsLogin()
       if (code === 200) {
-        return {
-          scan: true,
-          uuid,
-        }
+        return uuid
       }
     }
-    throw new Error('get uuid failed')
+    return null
   }
 
   public static async login(uuid: string): Promise<WXAuth> {
