@@ -23,16 +23,16 @@ export class API {
     console.debug(method)
     switch (method) {
       case 'AUTO': {
-        if (this.conf.has('auth.cookies') && Date.now() / 1000 - parseInt(this.conf.get('auth.cookies.wxloadtime')) < 600) {
+        if (!this.conf.has('auth.cookies')) {
+          return await this.login('SCAN')
+        }
+        if (Date.now() / 1000 - parseInt(this.conf.get('auth.cookies.wxloadtime')) < 600) {
           return await new WXAuth(this.conf.get('auth'))
         } else {
           return await this.login('PUSH')
         }
       }
       case 'PUSH': {
-        if (!this.conf.get('auth.cookies')) {
-          return await this.login('SCAN')
-        }
         const uuid = await WXAuth.uuid(this.conf.get('auth.cookies'))
         if (uuid) {
           return await WXAuth.login(uuid)
