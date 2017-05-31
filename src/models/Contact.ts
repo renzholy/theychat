@@ -3,37 +3,14 @@ import { chunk } from 'lodash'
 import * as emojis from 'emojis-list'
 
 import { Contact as ContactType, Member } from '../type'
+import { replaceEmoji } from '../utils'
 
 export abstract class AbstractContact {
   public abstract type: string
   protected contact: ContactType | Member
-  private static LRO = new RegExp(String.fromCharCode(parseInt('0x202D', 16)), 'g') // Left-to-Right Override
-  private static RLO = new RegExp(String.fromCharCode(parseInt('0x202E', 16)), 'g') // Right-to-Left Override
-  private static EOF = new RegExp(String.fromCharCode(parseInt('0xFE0F', 16)), 'g')
 
   constructor(contact: ContactType | Member) {
     this.contact = contact
-  }
-
-  private static replaceEmoji(str: string): string {
-    let text = str.replace(/<\/?[^>]+>/g, (a) => {
-      const matched = a.match(/emoji(\w+)/)
-      if (matched) {
-        try {
-          return ucs2.encode(chunk(matched[1].split(''), 5).map(c => parseInt(c.join(''), 16)))
-        } catch (err) {
-          return ''
-        }
-      }
-      return ''
-    })
-    emojis.forEach(emoji => {
-      if (text.indexOf(emoji) >= 0) {
-        text = text.replace(new RegExp(emoji, 'g'), e => e + ' ')
-        return
-      }
-    })
-    return text.replace(AbstractContact.LRO, '').replace(AbstractContact.RLO, '').replace(AbstractContact.EOF, '')
   }
 
   get id(): string {
@@ -41,7 +18,7 @@ export abstract class AbstractContact {
   }
 
   get name(): string {
-    return AbstractContact.replaceEmoji((<ContactType>this.contact).RemarkName || this.contact.NickName)
+    return replaceEmoji((<ContactType>this.contact).RemarkName || this.contact.NickName)
       || this.contact.DisplayName || this.contact.UserName
   }
 

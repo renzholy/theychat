@@ -1,5 +1,6 @@
 import { AddMsg } from '../type'
 import { Contact } from './Contact'
+import { replaceEmoji } from '../utils'
 
 export abstract class AbstractMessage {
   public abstract type: string
@@ -47,7 +48,7 @@ export class TextMessage extends AbstractMessage {
   public type: 'TEXT'
 
   get text(): string {
-    return this.addMsg.Content.replace(/^(@\w+):<br\/>/, '')
+    return replaceEmoji(this.addMsg.Content.replace(/^(@\w+):<br\/>/, ''))
   }
 }
 

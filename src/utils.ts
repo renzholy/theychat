@@ -1,7 +1,6 @@
 import { generate } from 'qrcode-terminal'
 import { ucs2 } from 'punycode'
 import { chunk } from 'lodash'
-import * as emojis from 'emojis-list'
 
 export async function qrcode(str: string, small: boolean = false): Promise<string> {
   return new Promise<string>((resolve) => {
@@ -26,12 +25,6 @@ export function replaceEmoji(str: string): string {
       }
     }
     return ''
-  })
-  emojis.forEach(emoji => {
-    if (text.indexOf(emoji) >= 0) {
-      text = text.replace(new RegExp(emoji, 'g'), e => e + ' ')
-      return
-    }
   })
   return text.replace(LRO, '').replace(RLO, '').replace(EOF, '')
 }
