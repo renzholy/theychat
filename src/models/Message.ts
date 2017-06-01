@@ -96,6 +96,26 @@ export class EmotionMessage extends AbstractMessage {
   }
 }
 
+export class LinkMessage extends AbstractMessage {
+  public type = 'LINK'
+
+  public get text(): string {
+    return `[分享链接] ${this.title}`
+  }
+
+  public get title(): string {
+    return this.addMsg.FileName
+  }
+
+  public get description(): string {
+    const matched = this.addMsg.Content.match(/des&gt;(.+)&lt;\/des&gt;/)
+    return matched ? matched[1] : ''
+  }
+
+  public get url(): string {
+    return this.addMsg.Url
+  }
+}
 
 export class UnknownMessage extends AbstractMessage {
   public type = 'UNKNOWN'
@@ -105,7 +125,7 @@ export class UnknownMessage extends AbstractMessage {
   }
 }
 
-export type Message = TextMessage | PictureMessage | VoiceMessage | EmotionMessage | UnknownMessage
+export type Message = TextMessage | PictureMessage | VoiceMessage | EmotionMessage | LinkMessage | UnknownMessage
 
 export class MessageFactory {
   public static create(addMsg: AddMsg, contacts: {
@@ -124,6 +144,9 @@ export class MessageFactory {
       case 47: {
         return new EmotionMessage(addMsg, contacts)
       }
+      case 49: {
+        return new LinkMessage(addMsg, contacts)
+      }
       default: {
         return new UnknownMessage(addMsg, contacts)
       }
@@ -134,19 +157,23 @@ export class MessageFactory {
     return message.type === 'TEXT'
   }
 
-  public static PictureMessage(message: AbstractMessage): message is PictureMessage {
+  public static isPictureMessage(message: AbstractMessage): message is PictureMessage {
     return message.type === 'PICTURE'
   }
 
-  public static VoiceMessage(message: AbstractMessage): message is VoiceMessage {
+  public static isVoiceMessage(message: AbstractMessage): message is VoiceMessage {
     return message.type === 'VOICE'
   }
 
-  public static EmotionMessage(message: AbstractMessage): message is EmotionMessage {
+  public static isEmotionMessage(message: AbstractMessage): message is EmotionMessage {
     return message.type === 'EMOTION'
   }
 
-  public static UnknownMessage(message: AbstractMessage): message is UnknownMessage {
+  public static isLinkMessage(message: AbstractMessage): message is LinkMessage {
+    return message.type === 'LINK'
+  }
+
+  public static isUnknownMessage(message: AbstractMessage): message is UnknownMessage {
     return message.type === 'UNKNOWN'
   }
 }
