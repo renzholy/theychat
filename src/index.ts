@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === 'dev') {
   try {
     await api.init()
     await api.onMessage((msg) => {
-      console.log(msg.from.name, msg.content)
+      console.log(msg.from.name, msg.text)
     })
   } catch (err) {
     console.error(err.message)

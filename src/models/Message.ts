@@ -9,74 +9,103 @@ export abstract class AbstractMessage {
     [key: string]: Contact
   }
 
-  constructor(addMsg: AddMsg, contacts: {
+  public constructor(addMsg: AddMsg, contacts: {
     [key: string]: Contact
   }) {
     this.addMsg = addMsg
     this.contacts = contacts
   }
 
-  get id(): string {
+  public get id(): string {
     return this.addMsg.MsgId
   }
 
-  get from(): Contact {
+  public get from(): Contact {
     return this.contacts[this.addMsg.FromUserName]
   }
 
-  get to(): Contact {
+  public get to(): Contact {
     return this.contacts[this.addMsg.ToUserName]
   }
 
-  get speaker(): Contact | null {
+  public get speaker(): Contact | null {
     const speaker = this.addMsg.Content.match(/^(@\w+):<br\/>/)
     return speaker && this.contacts[speaker[1]]
   }
 
   abstract get text(): string
 
-  get content(): string {
+  protected get content(): string {
     return this.speaker ? `${this.speaker.name}: ${this.text}` : this.text
   }
 
-  get raw(): AddMsg {
+  public get raw(): AddMsg {
     return this.addMsg
   }
 }
 
 export class TextMessage extends AbstractMessage {
-  public type: 'TEXT'
+  public type = 'TEXT'
 
-  get text(): string {
+  public get text(): string {
     return replaceEmoji(this.addMsg.Content.replace(/^(@\w+):<br\/>/, ''))
   }
 }
 
 export class PictureMessage extends AbstractMessage {
-  public type: 'PICTURE'
+  public type = 'PICTURE'
 
-  get text(): string {
+  public get text(): string {
     return '[发来一张图片]'
+  }
+
+  public get size(): number {
+    const matched = this.addMsg.Content.match(/ length ?= ?"(\d+)"/)
+    return matched ? parseInt(matched[1]) : 0
   }
 }
 
 export class VoiceMessage extends AbstractMessage {
-  public type: 'VOICE'
+  public type = 'VOICE'
 
-  get text(): string {
+  public get text(): string {
     return '[发来一条语音]'
+  }
+
+  public get duration(): number {
+    const matched = this.addMsg.Content.match(/ voicelength ?= ?"(\d+)"/)
+    return matched ? parseInt(matched[1]) : 0
+  }
+
+  public get size(): number {
+    const matched = this.addMsg.Content.match(/ length ?= ?"(\d+)"/)
+    return matched ? parseInt(matched[1]) : 0
   }
 }
 
-export class UnknownMessage extends AbstractMessage {
-  public type: 'UNKNOWN'
+export class EmotionMessage extends AbstractMessage {
+  public type = 'EMOTION'
 
-  get text(): string {
+  public get text(): string {
+    return '[发来一个表情]'
+  }
+
+  public get size(): number {
+    const matched = this.addMsg.Content.match(/ len ?= ?"(\d+)"/)
+    return matched ? parseInt(matched[1]) : 0
+  }
+}
+
+
+export class UnknownMessage extends AbstractMessage {
+  public type = 'UNKNOWN'
+
+  public get text(): string {
     return '[未知类型消息]'
   }
 }
 
-export type Message = TextMessage | PictureMessage | VoiceMessage | UnknownMessage
+export type Message = TextMessage | PictureMessage | VoiceMessage | EmotionMessage | UnknownMessage
 
 export class MessageFactory {
   public static create(addMsg: AddMsg, contacts: {
@@ -92,9 +121,32 @@ export class MessageFactory {
       case 34: {
         return new VoiceMessage(addMsg, contacts)
       }
+      case 47: {
+        return new EmotionMessage(addMsg, contacts)
+      }
       default: {
         return new UnknownMessage(addMsg, contacts)
       }
     }
+  }
+
+  public static isTextMessage(message: AbstractMessage): message is TextMessage {
+    return message.type === 'TEXT'
+  }
+
+  public static PictureMessage(message: AbstractMessage): message is PictureMessage {
+    return message.type === 'PICTURE'
+  }
+
+  public static VoiceMessage(message: AbstractMessage): message is VoiceMessage {
+    return message.type === 'VOICE'
+  }
+
+  public static EmotionMessage(message: AbstractMessage): message is EmotionMessage {
+    return message.type === 'EMOTION'
+  }
+
+  public static UnknownMessage(message: AbstractMessage): message is UnknownMessage {
+    return message.type === 'UNKNOWN'
   }
 }

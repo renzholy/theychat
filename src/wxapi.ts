@@ -199,13 +199,28 @@ export class WXAPI {
   public async webwxgetheadimg() {
   }
 
-  public async webwxgetmsgimg() {
+  public async webwxgetmsgimg(msgId: string, large: boolean) {
+    const result = await this.request({
+      url: `https://wx${this.auth.version}.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg`,
+      qs: {
+        MsgID: msgId,
+        skey: this.auth.skey,
+        type: large ? 'big' : 'slave',
+      }
+    })
   }
 
   public async webwxgetvideo() {
   }
 
-  public async webwxgetvoice() {
+  public async webwxgetvoice(msgId: string) {
+    const result = await this.request({
+      url: `https://wx${this.auth.version}.qq.com/cgi-bin/mmwebwx-bin/webwxgetvoice`,
+      qs: {
+        msgid: msgId,
+        skey: this.auth.skey,
+      }
+    })
   }
 
   public async webwxrequest(options: Options) {

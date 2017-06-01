@@ -1,10 +1,10 @@
-{
+export default {
   "1": {
     "MsgId": "3086767376663438889",
     "FromUserName": "@de439bfe9cdeb9a89da133b3cc8eb344",
     "ToUserName": "filehelper",
     "MsgType": 1,
-    "Content": "test",
+    "Content": "@de439bfe9cdeb9a89da133b3cc8eb344:<br/>test",
     "Status": 3,
     "ImgStatus": 1,
     "CreateTime": 1496066997,
