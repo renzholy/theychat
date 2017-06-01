@@ -1,3 +1,5 @@
+import { map } from 'lodash'
+
 import { AddMsg } from '../type'
 import { Contact } from './Contact'
 import { replaceEmoji } from '../utils'
@@ -42,6 +44,19 @@ export abstract class AbstractMessage {
   public get raw(): AddMsg {
     return this.addMsg
   }
+
+  public toJSON(): {
+    [key: string]: any
+  } {
+    return {
+      id: this.id,
+      from: this.from.name,
+      to: this.to.name,
+      speaker: this.speaker,
+      type: this.type,
+      text: this.text,
+    }
+  }
 }
 
 export class TextMessage extends AbstractMessage {
@@ -54,6 +69,7 @@ export class TextMessage extends AbstractMessage {
 
 export class PictureMessage extends AbstractMessage {
   public type = 'PICTURE'
+  public hasPicture = true
 
   public get text(): string {
     return '[发来一张图片]'
@@ -62,6 +78,16 @@ export class PictureMessage extends AbstractMessage {
   public get size(): number {
     const matched = this.addMsg.Content.match(/ length ?= ?"(\d+)"/)
     return matched ? parseInt(matched[1]) : 0
+  }
+
+  public toJSON(): {
+    [key: string]: any
+  } {
+    return {
+      ...super.toJSON(),
+      hasPicture: this.hasPicture,
+      size: this.size
+    }
   }
 }
 
@@ -81,10 +107,21 @@ export class VoiceMessage extends AbstractMessage {
     const matched = this.addMsg.Content.match(/ length ?= ?"(\d+)"/)
     return matched ? parseInt(matched[1]) : 0
   }
+
+  public toJSON(): {
+    [key: string]: any
+  } {
+    return {
+      ...super.toJSON(),
+      size: this.size,
+      duration: this.duration,
+    }
+  }
 }
 
 export class EmotionMessage extends AbstractMessage {
   public type = 'EMOTION'
+  public hasPicture = true
 
   public get text(): string {
     return '[发来一个表情]'
@@ -94,10 +131,21 @@ export class EmotionMessage extends AbstractMessage {
     const matched = this.addMsg.Content.match(/ len ?= ?"(\d+)"/)
     return matched ? parseInt(matched[1]) : 0
   }
+
+  public toJSON(): {
+    [key: string]: any
+  } {
+    return {
+      ...super.toJSON(),
+      hasPicture: this.hasPicture,
+      size: this.size
+    }
+  }
 }
 
 export class LinkMessage extends AbstractMessage {
   public type = 'LINK'
+  public hasPicture = true
 
   public get text(): string {
     return `[分享链接] ${this.title}`
@@ -114,6 +162,18 @@ export class LinkMessage extends AbstractMessage {
 
   public get url(): string {
     return this.addMsg.Url
+  }
+
+  public toJSON(): {
+    [key: string]: any
+  } {
+    return {
+      ...super.toJSON(),
+      hasPicture: this.hasPicture,
+      title: this.title,
+      description: this.description,
+      url: this.url,
+    }
   }
 }
 
