@@ -27,9 +27,9 @@ export class API {
     })
   }
 
-  private async init() {
+  private async init(relogin: boolean = false): Promise<void> {
     // login
-    const auth = await this.login()
+    const auth = await this.login(relogin ? 'SCAN' : 'AUTO')
     this.conf.set('auth', auth.toJSON())
     this.wxapi = new WXAPI(auth)
     this.emitter.emit(API.EVENT_LOGIN)
@@ -51,7 +51,7 @@ export class API {
     if (AddMsgList[0] && AddMsgList[0].MsgType === 51) {
       await this.batchGetContacts(AddMsgList[0].StatusNotifyUserName.split(','))
     } else {
-      console.warn('init contacts error')
+      this.emitter.emit(API.EVENT_ERROR, new Error('init contacts error'))
     }
     this.emitter.emit(API.EVENT_CONTACTS, this.contactStore)
 
@@ -67,13 +67,14 @@ export class API {
         }
       }
       if (retcode === 1101) {
-        console.error('init required')
+        this.emitter.emit(API.EVENT_ERROR, new Error('login required'))
         break
       }
     }
+    return this.init(true)
   }
 
-  private async login(method: 'AUTO' | 'PUSH' | 'SCAN' = 'AUTO'): Promise<WXAuth> {
+  private async login(method: 'AUTO' | 'PUSH' | 'SCAN'): Promise<WXAuth> {
     debug(method)
     switch (method) {
       case 'AUTO': {
@@ -119,19 +120,19 @@ export class API {
     }
   }
 
-  public onLogin(callback: () => void) {
+  public onLogin(callback: () => void): void {
     this.emitter.on(API.EVENT_LOGIN, callback)
   }
 
-  public onContacts(callback: (contactStore: ContactStore) => void) {
+  public onContacts(callback: (contactStore: ContactStore) => void): void {
     this.emitter.on(API.EVENT_CONTACTS, callback)
   }
 
-  public onMessage(callback: (message: Message) => void) {
+  public onMessage(callback: (message: Message) => void): void {
     this.emitter.on(API.EVENT_MESSAGE, callback)
   }
 
-  public onError(callback: (err: Error) => void) {
+  public onError(callback: (err: Error) => void): void {
     this.emitter.on(API.EVENT_ERROR, callback)
   }
 }
