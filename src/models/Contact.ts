@@ -1,7 +1,3 @@
-import { ucs2 } from 'punycode'
-import { chunk } from 'lodash'
-import * as emojis from 'emojis-list'
-
 import { Contact as ContactType, Member, User } from '../type'
 import { replaceEmoji } from '../utils'
 
@@ -22,9 +18,8 @@ export abstract class AbstractContact {
       || (<ContactType | Member>this.contact).DisplayName || this.contact.UserName
   }
 
-  match(keyword: string): boolean {
-    return `${this.contact.PYInitial} ${this.contact.PYQuanPin}`.toLowerCase().indexOf(keyword.toLowerCase()) >= 0
-      || this.name.indexOf(keyword) >= 0
+  public get raw(): ContactType | Member | User {
+    return this.contact
   }
 }
 

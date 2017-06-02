@@ -7,9 +7,8 @@ import { resolve } from 'path'
 import { API } from './api'
 import { Contact, ContactFactroy } from './models/Contact'
 import { Message } from './models/Message'
-const pkg = require(resolve('./package.json'))
 
-const api = new API(pkg.name)
+const api = new API()
 
 let contacts: {
   [key: string]: Contact

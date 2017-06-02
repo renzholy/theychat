@@ -1,7 +1,4 @@
-import { map } from 'lodash'
-
 import { AddMsg } from '../type'
-import { Contact } from './Contact'
 import { replaceEmoji } from '../utils'
 
 export abstract class AbstractMessage {

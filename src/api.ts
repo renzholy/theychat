@@ -18,9 +18,9 @@ export class API extends EventEmitter {
     [key: string]: Contact
   } = {}
 
-  constructor(name: string) {
+  constructor() {
     super()
-    this.conf = new Configstore(name, null, {
+    this.conf = new Configstore('theychat', null, {
       globalConfigPath: true,
     })
     this.init().catch(err => {
