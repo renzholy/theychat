@@ -6,31 +6,32 @@ import { resolve } from 'path'
 
 import { API } from './api'
 import { Contact, ContactFactroy } from './models/Contact'
-import { Message } from './models/Message'
 
 const api = new API()
 
-let contacts: {
+let contactStore: {
   [key: string]: Contact
 }
 
-api.on(API.EVENT_CONTACTS, (_contacts: {
-  [key: string]: Contact
-}) => {
-  console.log('contacts', Object.keys(_contacts).length)
-  contacts = _contacts
+api.onLogin(() => {
+  console.log('login succeed')
 })
 
-api.on(API.EVENT_MESSAGE, (msg: Message) => {
+api.onContacts((contacts) => {
+  console.log('contacts', Object.keys(contacts).length)
+  contactStore = contacts
+})
+
+api.onMessage((msg) => {
   const json = msg.toJSON()
-  json.from = contacts[json.from].name || ContactFactroy.stranger(json.from)
-  json.to = contacts[json.to].name || ContactFactroy.stranger(json.to)
+  json.from = contactStore[json.from] ? contactStore[json.from].name : ContactFactroy.stranger(json.from)
+  json.to = contactStore[json.to] ? contactStore[json.to].name : ContactFactroy.stranger(json.to)
   if (json.speaker) {
-    json.speaker = contacts[json.speaker].name || ContactFactroy.stranger(json.speaker)
+    json.speaker = contactStore[json.speaker].name || ContactFactroy.stranger(json.speaker)
   }
   console.log(json)
 })
 
-api.on(API.EVENT_ERROR, (err: Error) => {
+api.onError((err) => {
   console.error(err)
 })

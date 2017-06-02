@@ -1,30 +1,31 @@
 const debug = require('debug')('api')
 import * as EventEmitter from 'events'
-import { chunk, filter, values } from 'lodash'
 import * as Configstore from 'configstore'
+import { chunk, filter, values } from 'lodash'
 
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
 import { Contact, ContactFactroy } from './models/Contact'
 import { Message, MessageFactory } from './models/Message'
 
-export class API extends EventEmitter {
-  public static EVENT_CONTACTS = 'EVENT_CONTACTS'
-  public static EVENT_MESSAGE = 'EVENT_MESSAGE'
-  public static EVENT_ERROR = 'EVENT_ERROR'
+export class API {
+  private static EVENT_LOGIN = 'EVENT_LOGIN'
+  private static EVENT_CONTACTS = 'EVENT_CONTACTS'
+  private static EVENT_MESSAGE = 'EVENT_MESSAGE'
+  private static EVENT_ERROR = 'EVENT_ERROR'
   private conf
   private wxapi: WXAPI
   private contacts: {
     [key: string]: Contact
   } = {}
+  private emitter = new EventEmitter()
 
   constructor() {
-    super()
     this.conf = new Configstore('theychat', null, {
       globalConfigPath: true,
     })
     this.init().catch(err => {
-      this.emit(API.EVENT_ERROR, err)
+      this.emitter.emit(API.EVENT_ERROR, err)
     })
   }
 
@@ -33,6 +34,7 @@ export class API extends EventEmitter {
     const auth = await this.login()
     this.conf.set('auth', auth.toJSON())
     this.wxapi = new WXAPI(auth)
+    this.emitter.emit(API.EVENT_LOGIN)
 
     // init
     const u = (await this.wxapi.webwxinit()).User
@@ -53,7 +55,7 @@ export class API extends EventEmitter {
     } else {
       console.warn('init contacts error')
     }
-    this.emit(API.EVENT_CONTACTS, this.contacts)
+    this.emitter.emit(API.EVENT_CONTACTS, this.contacts)
 
     while (true) {
       const { retcode, selector } = await this.wxapi.synccheck()
@@ -63,7 +65,7 @@ export class API extends EventEmitter {
         for (let msg of AddMsgList) {
           debug(msg)
           const c = this.contacts[msg.FromUserName]
-          this.emit(API.EVENT_MESSAGE, MessageFactory.create(msg))
+          this.emitter.emit(API.EVENT_MESSAGE, MessageFactory.create(msg))
         }
       }
       if (retcode === 1101) {
@@ -117,5 +119,23 @@ export class API extends EventEmitter {
         }
       }
     }
+  }
+
+  public onLogin(callback: () => void) {
+    this.emitter.on(API.EVENT_LOGIN, callback)
+  }
+
+  public onContacts(callback: (contacts: {
+    [key: string]: Contact
+  }) => void) {
+    this.emitter.on(API.EVENT_CONTACTS, callback)
+  }
+
+  public onMessage(callback: (message: Message) => void) {
+    this.emitter.on(API.EVENT_MESSAGE, callback)
+  }
+
+  public onError(callback: (err: Error) => void) {
+    this.emitter.on(API.EVENT_ERROR, callback)
   }
 }
