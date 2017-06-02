@@ -3,41 +3,34 @@ import { map } from 'lodash'
 import { AddMsg } from '../type'
 import { Contact } from './Contact'
 import { replaceEmoji } from '../utils'
-import { ContactFactroy } from './Contact'
 
 export abstract class AbstractMessage {
   public abstract type: string
   protected addMsg: AddMsg
-  protected contacts: {
-    [key: string]: Contact
-  }
 
-  public constructor(addMsg: AddMsg, contacts: {
-    [key: string]: Contact
-  }) {
+  public constructor(addMsg: AddMsg) {
     this.addMsg = addMsg
-    this.contacts = contacts
   }
 
   public get id(): string {
     return this.addMsg.MsgId
   }
 
-  public get from(): Contact {
-    return this.contacts[this.addMsg.FromUserName] || ContactFactroy.stranger(this.addMsg.FromUserName)
+  public get from(): string {
+    return this.addMsg.FromUserName
   }
 
-  public get to(): Contact {
-    return this.contacts[this.addMsg.ToUserName] || ContactFactroy.stranger(this.addMsg.ToUserName)
+  public get to(): string {
+    return this.addMsg.ToUserName
   }
 
-  public get speaker(): Contact | null {
+  public get speaker(): string | null {
     const speaker = this.addMsg.Content.match(/^(@\w+):<br\/>/)
-    return speaker && (this.contacts[speaker[1]] || ContactFactroy.stranger(speaker[1]))
+    return speaker && speaker[1]
   }
 
   public get text(): string {
-    return this.speaker ? `${this.speaker.name}: ${this.content}` : this.content
+    return this.speaker ? `${this.speaker}: ${this.content}` : this.content
   }
 
   protected abstract get content(): string
@@ -51,9 +44,9 @@ export abstract class AbstractMessage {
   } {
     return {
       id: this.id,
-      from: this.from.name,
-      to: this.to.name,
-      speaker: this.speaker && this.speaker.name,
+      from: this.from,
+      to: this.to,
+      speaker: this.speaker,
       type: this.type,
       text: this.text,
     }
@@ -189,27 +182,25 @@ export class UnknownMessage extends AbstractMessage {
 export type Message = TextMessage | PictureMessage | VoiceMessage | EmotionMessage | LinkMessage | UnknownMessage
 
 export class MessageFactory {
-  public static create(addMsg: AddMsg, contacts: {
-    [key: string]: Contact
-  }): Message {
+  public static create(addMsg: AddMsg): Message {
     switch (addMsg.MsgType) {
       case 1: {
-        return new TextMessage(addMsg, contacts)
+        return new TextMessage(addMsg)
       }
       case 3: {
-        return new PictureMessage(addMsg, contacts)
+        return new PictureMessage(addMsg)
       }
       case 34: {
-        return new VoiceMessage(addMsg, contacts)
+        return new VoiceMessage(addMsg)
       }
       case 47: {
-        return new EmotionMessage(addMsg, contacts)
+        return new EmotionMessage(addMsg)
       }
       case 49: {
-        return new LinkMessage(addMsg, contacts)
+        return new LinkMessage(addMsg)
       }
       default: {
-        return new UnknownMessage(addMsg, contacts)
+        return new UnknownMessage(addMsg)
       }
     }
   }

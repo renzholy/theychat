@@ -63,7 +63,7 @@ export class API extends EventEmitter {
         for (let msg of AddMsgList) {
           debug(msg)
           const c = this.contacts[msg.FromUserName]
-          this.emit(API.EVENT_MESSAGE, MessageFactory.create(msg, this.contacts))
+          this.emit(API.EVENT_MESSAGE, MessageFactory.create(msg))
         }
       }
       if (retcode === 1101) {
