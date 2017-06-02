@@ -29,11 +29,7 @@ export abstract class AbstractMessage {
     return speaker && speaker[1]
   }
 
-  public get text(): string {
-    return this.speaker ? `${this.speaker}: ${this.content}` : this.content
-  }
-
-  protected abstract get content(): string
+  public abstract get text(): string
 
   public get raw(): AddMsg {
     return this.addMsg
@@ -56,8 +52,8 @@ export abstract class AbstractMessage {
 export class TextMessage extends AbstractMessage {
   public type = 'TEXT'
 
-  protected get content(): string {
-    return replaceEmoji(this.addMsg.Content.replace(/^(@\w+):<br\/>/, ''))
+  public get text(): string {
+    return replaceEmoji(this.addMsg.Content.replace(/^@\w+:<br\/>/, ''))
   }
 }
 
@@ -65,8 +61,8 @@ export class PictureMessage extends AbstractMessage {
   public type = 'PICTURE'
   public hasPicture = true
 
-  protected get content(): string {
-    return '[发来一张图片]'
+  public get text(): string {
+    return '[图片]'
   }
 
   public get size(): number {
@@ -88,8 +84,8 @@ export class PictureMessage extends AbstractMessage {
 export class VoiceMessage extends AbstractMessage {
   public type = 'VOICE'
 
-  protected get content(): string {
-    return '[发来一条语音]'
+  public get text(): string {
+    return '[语音]'
   }
 
   public get duration(): number {
@@ -117,8 +113,8 @@ export class EmotionMessage extends AbstractMessage {
   public type = 'EMOTION'
   public hasPicture = true
 
-  protected get content(): string {
-    return '[发来一个表情]'
+  public get text(): string {
+    return '[动画表情]'
   }
 
   public get size(): number {
@@ -141,8 +137,8 @@ export class LinkMessage extends AbstractMessage {
   public type = 'LINK'
   public hasPicture = true
 
-  protected get content(): string {
-    return `[分享链接] ${this.title}`
+  public get text(): string {
+    return '[链接]'
   }
 
   public get title(): string {
@@ -174,7 +170,7 @@ export class LinkMessage extends AbstractMessage {
 export class UnknownMessage extends AbstractMessage {
   public type = 'UNKNOWN'
 
-  protected get content(): string {
+  public get text(): string {
     return '[未知类型消息]'
   }
 }
