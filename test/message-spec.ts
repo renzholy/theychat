@@ -6,7 +6,7 @@ import fixtures from './fixtures/message'
 test('text message', t => {
   const message = MessageFactory.create(fixtures['1'], {})
   t.is(message.type, 'TEXT')
-  t.is(message.text, 'test')
+  t.is(message.text, 'Stranger: test')
 })
 
 test('picture message', t => {

@@ -125,6 +125,7 @@ export class WXAPI {
         r: Date.now(),
         _: Date.now(),
       },
+      simple: false
     })
     return {
       retcode: parseInt(html.match(/retcode ?: ?"(.+)"/)[1]),

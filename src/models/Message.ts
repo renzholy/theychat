@@ -3,6 +3,7 @@ import { map } from 'lodash'
 import { AddMsg } from '../type'
 import { Contact } from './Contact'
 import { replaceEmoji } from '../utils'
+import { ContactFactroy } from './Contact'
 
 export abstract class AbstractMessage {
   public abstract type: string
@@ -23,23 +24,23 @@ export abstract class AbstractMessage {
   }
 
   public get from(): Contact {
-    return this.contacts[this.addMsg.FromUserName]
+    return this.contacts[this.addMsg.FromUserName] || ContactFactroy.stranger(this.addMsg.FromUserName)
   }
 
   public get to(): Contact {
-    return this.contacts[this.addMsg.ToUserName]
+    return this.contacts[this.addMsg.ToUserName] || ContactFactroy.stranger(this.addMsg.ToUserName)
   }
 
   public get speaker(): Contact | null {
     const speaker = this.addMsg.Content.match(/^(@\w+):<br\/>/)
-    return speaker && this.contacts[speaker[1]]
+    return speaker && (this.contacts[speaker[1]] || ContactFactroy.stranger(speaker[1]))
   }
 
-  abstract get text(): string
-
-  protected get content(): string {
-    return this.speaker ? `${this.speaker.name}: ${this.text}` : this.text
+  public get text(): string {
+    return this.speaker ? `${this.speaker.name}: ${this.content}` : this.content
   }
+
+  protected abstract get content(): string
 
   public get raw(): AddMsg {
     return this.addMsg
@@ -52,7 +53,7 @@ export abstract class AbstractMessage {
       id: this.id,
       from: this.from.name,
       to: this.to.name,
-      speaker: this.speaker,
+      speaker: this.speaker && this.speaker.name,
       type: this.type,
       text: this.text,
     }
@@ -62,7 +63,7 @@ export abstract class AbstractMessage {
 export class TextMessage extends AbstractMessage {
   public type = 'TEXT'
 
-  public get text(): string {
+  protected get content(): string {
     return replaceEmoji(this.addMsg.Content.replace(/^(@\w+):<br\/>/, ''))
   }
 }
@@ -71,7 +72,7 @@ export class PictureMessage extends AbstractMessage {
   public type = 'PICTURE'
   public hasPicture = true
 
-  public get text(): string {
+  protected get content(): string {
     return '[发来一张图片]'
   }
 
@@ -94,7 +95,7 @@ export class PictureMessage extends AbstractMessage {
 export class VoiceMessage extends AbstractMessage {
   public type = 'VOICE'
 
-  public get text(): string {
+  protected get content(): string {
     return '[发来一条语音]'
   }
 
@@ -123,7 +124,7 @@ export class EmotionMessage extends AbstractMessage {
   public type = 'EMOTION'
   public hasPicture = true
 
-  public get text(): string {
+  protected get content(): string {
     return '[发来一个表情]'
   }
 
@@ -147,7 +148,7 @@ export class LinkMessage extends AbstractMessage {
   public type = 'LINK'
   public hasPicture = true
 
-  public get text(): string {
+  protected get content(): string {
     return `[分享链接] ${this.title}`
   }
 
@@ -156,8 +157,8 @@ export class LinkMessage extends AbstractMessage {
   }
 
   public get description(): string {
-    const matched = this.addMsg.Content.match(/des&gt;(.+)&lt;\/des&gt;/)
-    return matched ? matched[1] : ''
+    const matched = this.addMsg.Content.match(/des&gt;(&lt;!\[CDATA\[)?(.+)(&(amp;)?gt;)?&lt;\/des&gt;/)
+    return matched ? matched[2] : ''
   }
 
   public get url(): string {
@@ -180,7 +181,7 @@ export class LinkMessage extends AbstractMessage {
 export class UnknownMessage extends AbstractMessage {
   public type = 'UNKNOWN'
 
-  public get text(): string {
+  protected get content(): string {
     return '[未知类型消息]'
   }
 }
