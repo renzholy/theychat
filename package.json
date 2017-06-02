@@ -7,8 +7,8 @@
   "scripts": {
     "start": "node ./dist/src/index.js",
     "build": "rm -rf ./dist && tsc",
-    "dev": "tsc -w & NODE_ENV=dev nodemon ./dist/src/index.js",
-    "test": "rm -rf ./dist && tsc && NODE_ENV=dev ava -s ./dist/test/*"
+    "dev": "tsc -w & DEBUG=* nodemon ./dist/src/index.js",
+    "test": "rm -rf ./dist && tsc && ava -s ./dist/test/*"
   },
   "bin": {
     "theychat": "./dist/src/index.js"
@@ -25,6 +25,7 @@
   "homepage": "https://github.com/RenzHoly/theychat#readme",
   "dependencies": {
     "configstore": "^3.1.0",
+    "debug": "^2.6.8",
     "lodash": "^4.17.4",
     "punycode": "^2.1.0",
     "qrcode-terminal": "^0.11.0",

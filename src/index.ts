@@ -9,19 +9,14 @@ const pkg = require(resolve('./package.json'))
 
 const api = new API(pkg.name)
 
-if (process.env.NODE_ENV === 'dev') {
-  console.debug = console.log
-} else {
-  console.debug = () => null
-}
+api.on(API.EVENT_CONTACTS, (contacts) => {
+  console.log('contacts', Object.keys(contacts).length)
+})
 
-(async function () {
-  try {
-    await api.init()
-    await api.onMessage((msg) => {
-      console.log(msg.toJSON())
-    })
-  } catch (err) {
-    console.error(err.message)
-  }
-})()
+api.on(API.EVENT_MESSAGE, (msg) => {
+  console.log(msg.toJSON())
+})
+
+api.on(API.EVENT_ERROR, (err) => {
+  console.error(err)
+})

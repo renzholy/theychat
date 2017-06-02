@@ -1,3 +1,5 @@
+const debug = require('debug')('api')
+import * as EventEmitter from 'events'
 import { chunk, filter, values } from 'lodash'
 import * as Configstore from 'configstore'
 
@@ -6,7 +8,10 @@ import { qrcode } from '../src/utils'
 import { Contact, ContactFactroy } from './models/Contact'
 import { Message, MessageFactory } from './models/Message'
 
-export class API {
+export class API extends EventEmitter {
+  public static EVENT_CONTACTS = 'EVENT_CONTACTS'
+  public static EVENT_MESSAGE = 'EVENT_MESSAGE'
+  public static EVENT_ERROR = 'EVENT_ERROR'
   private conf
   private wxapi: WXAPI
   private contacts: {
@@ -14,13 +19,62 @@ export class API {
   } = {}
 
   constructor(name: string) {
+    super()
     this.conf = new Configstore(name, null, {
       globalConfigPath: true,
     })
+    this.init().catch(err => {
+      this.emit(API.EVENT_ERROR, err)
+    })
+  }
+
+  private async init() {
+    // login
+    const auth = await this.login()
+    this.conf.set('auth', auth.toJSON())
+    this.wxapi = new WXAPI(auth)
+
+    // init
+    const u = (await this.wxapi.webwxinit()).User
+    const c = ContactFactroy.create(u)
+    this.contacts[c.id] = c
+    await this.wxapi.webwxstatusnotify()
+
+    // get contacts  
+    for (let contact of (await this.wxapi.webwxgetcontact()).MemberList) {
+      const c = ContactFactroy.create(contact)
+      this.contacts[c.id] = c
+    }
+    const groups = filter(this.contacts, (contact: Contact) => ContactFactroy.isGroupContact(contact))
+    await this.batchGetContacts(groups.map(contact => contact.id))
+    const { AddMsgList } = await this.wxapi.webwxsync()
+    if (AddMsgList[0] && AddMsgList[0].MsgType === 51) {
+      await this.batchGetContacts(AddMsgList[0].StatusNotifyUserName.split(','))
+    } else {
+      console.warn('init contacts error')
+    }
+    this.emit(API.EVENT_CONTACTS, this.contacts)
+
+    while (true) {
+      const { retcode, selector } = await this.wxapi.synccheck()
+      debug(retcode, selector)
+      if (retcode === 0 && selector !== 0) {
+        const { AddMsgList } = await this.wxapi.webwxsync()
+        for (let msg of AddMsgList) {
+          debug(msg)
+          const c = this.contacts[msg.FromUserName]
+          this.emit(API.EVENT_MESSAGE, MessageFactory.create(msg, this.contacts))
+        }
+      }
+      if (retcode === 1101) {
+        console.error('init required')
+        break
+      }
+    }
   }
 
   private async login(method: 'AUTO' | 'PUSH' | 'SCAN' = 'AUTO'): Promise<WXAuth> {
-    console.debug(method)
+    debug(method)
     switch (method) {
       case 'AUTO': {
         if (!this.conf.has('auth.cookies')) {
@@ -61,52 +115,6 @@ export class API {
           const c = ContactFactroy.create(member)
           this.contacts[c.id] = c
         }
-      }
-    }
-  }
-
-  public async init(): Promise<void> {
-    // login
-    const auth = await this.login()
-    this.conf.set('auth', auth.toJSON())
-    this.wxapi = new WXAPI(auth)
-
-    // get contacts    
-    const u = (await this.wxapi.webwxinit()).User
-    const c = ContactFactroy.create(u)
-    this.contacts[c.id] = c
-    await this.wxapi.webwxstatusnotify()
-    for (let contact of (await this.wxapi.webwxgetcontact()).MemberList) {
-      const c = ContactFactroy.create(contact)
-      this.contacts[c.id] = c
-    }
-    const groups = filter(this.contacts, contact => ContactFactroy.isGroupContact(contact))
-    await this.batchGetContacts(groups.map(contact => contact.id))
-
-    const { AddMsgList } = await this.wxapi.webwxsync()
-    if (AddMsgList[0] && AddMsgList[0].MsgType === 51) {
-      await this.batchGetContacts(AddMsgList[0].StatusNotifyUserName.split(','))
-    } else {
-      console.warn('init contacts error')
-    }
-    console.log('init succeed')
-  }
-
-  public async onMessage(callback: (msg: Message) => void): Promise<void> {
-    while (true) {
-      const { retcode, selector } = await this.wxapi.synccheck()
-      console.debug(retcode, selector)
-      if (retcode === 0 && selector !== 0) {
-        const { AddMsgList } = await this.wxapi.webwxsync()
-        for (let msg of AddMsgList) {
-          console.debug(msg)
-          const c = this.contacts[msg.FromUserName]
-          await callback(MessageFactory.create(msg, this.contacts))
-        }
-      }
-      if (retcode === 1101) {
-        console.error('init required')
-        break
       }
     }
   }
