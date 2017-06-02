@@ -59,7 +59,6 @@ export class TextMessage extends AbstractMessage {
 
 export class PictureMessage extends AbstractMessage {
   public type = 'PICTURE'
-  public hasPicture = true
 
   public get text(): string {
     return '[图片]'
@@ -75,7 +74,6 @@ export class PictureMessage extends AbstractMessage {
   } {
     return {
       ...super.toJSON(),
-      hasPicture: this.hasPicture,
       size: this.size
     }
   }
@@ -111,7 +109,6 @@ export class VoiceMessage extends AbstractMessage {
 
 export class EmotionMessage extends AbstractMessage {
   public type = 'EMOTION'
-  public hasPicture = true
 
   public get text(): string {
     return '[动画表情]'
@@ -127,7 +124,6 @@ export class EmotionMessage extends AbstractMessage {
   } {
     return {
       ...super.toJSON(),
-      hasPicture: this.hasPicture,
       size: this.size
     }
   }
@@ -135,7 +131,6 @@ export class EmotionMessage extends AbstractMessage {
 
 export class LinkMessage extends AbstractMessage {
   public type = 'LINK'
-  public hasPicture = true
 
   public get text(): string {
     return '[链接]'
@@ -159,7 +154,6 @@ export class LinkMessage extends AbstractMessage {
   } {
     return {
       ...super.toJSON(),
-      hasPicture: this.hasPicture,
       title: this.title,
       description: this.description,
       url: this.url,
