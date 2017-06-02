@@ -32,13 +32,13 @@ export class API {
     const auth = await this.login(relogin ? 'SCAN' : 'AUTO')
     this.conf.set('auth', auth.toJSON())
     this.wxapi = new WXAPI(auth)
-    this.emitter.emit(API.EVENT_LOGIN)
 
     // init
     const u = (await this.wxapi.webwxinit()).User
     const c = ContactFactroy.create(u)
     this.contactStore.add(c)
     await this.wxapi.webwxstatusnotify()
+    this.emitter.emit(API.EVENT_LOGIN, c)
 
     // get contacts  
     for (let contact of (await this.wxapi.webwxgetcontact()).MemberList) {
@@ -120,7 +120,7 @@ export class API {
     }
   }
 
-  public onLogin(callback: () => void): void {
+  public onLogin(callback: (user: Contact) => void): void {
     this.emitter.on(API.EVENT_LOGIN, callback)
   }
 

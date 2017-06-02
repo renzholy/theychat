@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 import 'source-map-support/register'
-import { readFile } from 'fs'
-import { resolve } from 'path'
 
 import { API } from './api'
 import { ContactStore } from './models/ContactStore'
@@ -11,8 +9,8 @@ const api = new API()
 
 let store: ContactStore
 
-api.onLogin(() => {
-  console.log('login succeed')
+api.onLogin((user) => {
+  console.log('login succeed', user.name)
 })
 
 api.onContacts((contactStore) => {
