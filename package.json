@@ -6,7 +6,9 @@
   "types": "dist/src/index.d.js",
   "scripts": {
     "start": "node dist/src/index.js",
-    "build": "rm -rf dist && tsc",
+    "compile": "rm -rf dist && tsc",
+    "clean": "rm -rf dist",
+    "purge": "rm -rf package-lock.json node_modules && npm run clean",
     "dev": "tsc -w & DEBUG=* nodemon dist/src/index.js",
     "test": "rm -rf dist && tsc && ava -s dist/test/*"
   },

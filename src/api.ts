@@ -5,9 +5,9 @@ import { chunk, values } from 'lodash'
 
 import { WXAPI, WXAuth } from './wxapi'
 import { qrcode } from '../src/utils'
-import { ContactStore } from './models/ContactStore'
-import { Contact, ContactFactroy } from './models/Contact'
-import { Message, MessageFactory } from './models/Message'
+import { ContactStore } from './models/contact-store'
+import { Contact, ContactFactroy } from './models/contact'
+import { Message, MessageFactory } from './models/message'
 
 export class API {
   private static EVENT_LOGIN = 'EVENT_LOGIN'

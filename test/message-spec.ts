@@ -1,6 +1,6 @@
 import test from 'ava'
 import { AddMsg } from '../src/type'
-import { MessageFactory, PictureMessage, VoiceMessage, LinkMessage } from '../src/models/Message'
+import { MessageFactory, PictureMessage, VoiceMessage, LinkMessage } from '../src/models/message'
 import fixtures from './fixtures/message'
 
 test('text message', t => {

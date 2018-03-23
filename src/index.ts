@@ -3,7 +3,7 @@
 import 'source-map-support/register'
 
 import { API } from './api'
-import { ContactStore } from './models/ContactStore'
+import { ContactStore } from './models/contact-store'
 
 const api = new API()
 

@@ -1,6 +1,6 @@
 import { filter, size } from 'lodash'
 
-import { Contact, ContactFactroy } from './Contact'
+import { Contact, ContactFactroy } from './contact'
 
 export class ContactStore {
   private store: {
